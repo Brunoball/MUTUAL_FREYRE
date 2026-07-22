@@ -990,3 +990,106 @@ button { -webkit-tap-highlight-color: transparent; }
   .global-toast,
   .global-toast.is-leaving { animation: none; }
 }
+
+/* Alineaciones y tonos globales adicionales usados por Ayudas. */
+.global-table-cell.is-right,
+.global-div-table__head-cell.is-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.global-chip.is-warning {
+  border-color: color-mix(in srgb, #b97914 28%, white);
+  background: color-mix(in srgb, #b97914 9%, white);
+  color: #a56a10;
+}
+
+.global-chip.is-neutral {
+  border-color: color-mix(in srgb, var(--global-ui-muted) 24%, white);
+  background: color-mix(in srgb, var(--global-ui-muted) 9%, white);
+  color: var(--global-ui-muted);
+}
+
+/* Medidas y alineaciones propias del listado de Ayudas. */
+.ayudas-global-grid {
+  grid-template-columns:
+    minmax(0, 1.3fr)
+    minmax(0, .88fr)
+    minmax(0, 1.35fr)
+    minmax(0, .68fr)
+    minmax(0, .72fr)
+    minmax(0, .72fr)
+    minmax(0, .88fr)
+    minmax(0, .68fr);
+  width: 100%;
+  min-width: 0;
+}
+
+.ayudas-global-table,
+.ayudas-global-table__body {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ayudas-global-grid > :nth-child(4),
+.ayudas-global-grid > :nth-child(6),
+.ayudas-global-grid > :nth-child(8) {
+  justify-content: center;
+  text-align: center;
+}
+
+.ayudas-global-grid > :nth-child(5) {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+@media (max-width: 1180px) {
+  .ayudas-global-grid {
+    grid-template-columns:
+      minmax(0, 1.25fr)
+      minmax(0, .86fr)
+      minmax(0, 1.3fr)
+      minmax(0, .68fr)
+      minmax(0, .72fr)
+      minmax(0, .7fr)
+      minmax(0, .68fr);
+  }
+
+  .ayudas-global-grid > :nth-child(7) {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .ayudas-global-grid {
+    grid-template-columns:
+      minmax(0, 1.25fr)
+      minmax(0, .88fr)
+      minmax(0, 1.25fr)
+      minmax(0, .72fr)
+      minmax(0, .7fr)
+      minmax(0, .68fr);
+  }
+
+  .ayudas-global-grid > :nth-child(4),
+  .ayudas-global-grid > :nth-child(7) {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .ayudas-global-grid {
+    grid-template-columns:
+      minmax(0, 1.25fr)
+      minmax(0, .9fr)
+      minmax(0, .7fr)
+      minmax(0, .68fr);
+  }
+
+  .ayudas-global-grid > :nth-child(3),
+  .ayudas-global-grid > :nth-child(4),
+  .ayudas-global-grid > :nth-child(5),
+  .ayudas-global-grid > :nth-child(7) {
+    display: none;
+  }
+}
