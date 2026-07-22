@@ -1,0 +1,13 @@
+{
+  "name": "3devs/mutual-freyre-api",
+  "description": "Backend modular monolítico para el Sistema Integral Mutual",
+  "type": "project",
+  "require": {
+    "php": "^8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  }
+}
