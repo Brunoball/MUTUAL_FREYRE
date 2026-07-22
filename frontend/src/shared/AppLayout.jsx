@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faLandmark, faRightFromBracket, faUserCircle, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faRightFromBracket, faUserCircle, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { APP_NAME, INSTITUTION_NAME } from "../config/env";
 import { CONFIGURATION_NAV_ITEM, NAVIGATION_GROUPS } from "../config/navigation";
 import { useAuth } from "../app/AuthProvider";
+import mutualLogo from "../assets/images/logo_perfil_sf.png";
 
 export default function AppLayout() {
   const [open, setOpen] = useState(false);
@@ -12,8 +13,6 @@ export default function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const auth = useAuth();
-
-  useEffect(() => setOpen(false), [location.pathname]);
 
   const visibleGroups = useMemo(() => NAVIGATION_GROUPS
     .map((group) => ({ ...group, items: group.items.filter((item) => auth.can(item.permission)) }))
@@ -46,7 +45,7 @@ export default function AppLayout() {
             <FontAwesomeIcon icon={faBars} />
           </button>
           <button className="topbar__brand" type="button" onClick={() => navigate("/panel")}>
-            <span><FontAwesomeIcon icon={faLandmark} /></span>
+            <span className="brand-logo brand-logo--topbar"><img src={mutualLogo} alt="" /></span>
             <div><strong>{APP_NAME}</strong><small>{INSTITUTION_NAME}</small></div>
           </button>
         </div>
@@ -86,10 +85,18 @@ export default function AppLayout() {
       </header>
 
       <div className={`sidebar-overlay ${open ? "is-open" : ""}`} onClick={() => setOpen(false)} />
-      <aside className={`sidebar ${open ? "is-open" : ""}`}>
+      <aside
+        className={`sidebar ${open ? "is-open" : ""}`}
+        onMouseLeave={() => setOpen(false)}
+      >
         <div className="sidebar__header">
-          <button className="sidebar__brand" type="button" onClick={() => navigate("/panel")} title={APP_NAME}>
-            <span><FontAwesomeIcon icon={faLandmark} /></span>
+          <button
+            className="sidebar__brand"
+            type="button"
+            onClick={() => navigate("/panel")}
+            title={APP_NAME}
+          >
+            <span className="brand-logo brand-logo--sidebar"><img src={mutualLogo} alt="" /></span>
             <div><strong>{APP_NAME}</strong><small>Backoffice interno</small></div>
           </button>
           <button className="icon-button sidebar__close" type="button" onClick={() => setOpen(false)} aria-label="Cerrar menú">

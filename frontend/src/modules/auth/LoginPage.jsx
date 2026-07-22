@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash, faLandmark, faLock, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash, faLock, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/AuthProvider";
-import { APP_NAME, INSTITUTION_NAME } from "../../config/env";
+import logoPerfilTitleSf from "../../assets/images/logo_perfil_title_sf.png";
 
 const REMEMBER_KEY = "mutual_freyre_remembered_user";
 
@@ -44,9 +44,9 @@ export default function LoginPage() {
   return (
     <main className="login-page">
       <section className="login-brand">
-        <div className="login-brand__mark"><FontAwesomeIcon icon={faLandmark} /></div>
-        <p className="login-brand__kicker">{INSTITUTION_NAME}</p>
-        <h1>{APP_NAME}</h1>
+        <div className="login-brand__identity">
+          <img src={logoPerfilTitleSf} alt="Perfil SF" />
+        </div>
         <p className="login-brand__copy">Gestión centralizada de asociados, ayudas económicas, ahorros, valores, caja, bancos y contabilidad.</p>
         <div className="login-brand__principles">
           <span>Una sola institución</span><span>Arquitectura modular</span><span>Operaciones auditables</span>
