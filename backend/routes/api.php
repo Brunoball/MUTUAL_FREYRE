@@ -7,6 +7,9 @@ use App\Modules\Auth\AuthRepository;
 use App\Modules\Dashboard\DashboardService;
 use App\Modules\Dashboard\DashboardController;
 use App\Modules\Dashboard\DashboardRepository;
+use App\Modules\Configuracion\ConfiguracionController;
+use App\Modules\Configuracion\ConfiguracionRepository;
+use App\Modules\Configuracion\ConfiguracionService;
 use App\Modules\Ayudas\AyudasController;
 use App\Modules\Ayudas\AyudasRepository;
 use App\Modules\Ayudas\AyudasService;
@@ -43,9 +46,13 @@ $router->get('/api/public/v1/health', static function (
 $dashboardController = new DashboardController(new DashboardService(new DashboardRepository()));
 $personasController = new PersonasController(new PersonasService(new PersonasRepository(), $audit));
 $ayudasController = new AyudasController(new AyudasService(new AyudasRepository(), $audit));
+$configuracionController = new ConfiguracionController(
+    new ConfiguracionService(new ConfiguracionRepository(), $audit)
+);
 
 (require __DIR__ . '/../app/Modules/Dashboard/routes.php')($router, $dashboardController);
 (require __DIR__ . '/../app/Modules/Personas/routes.php')($router, $personasController);
 (require __DIR__ . '/../app/Modules/Ayudas/routes.php')($router, $ayudasController);
+(require __DIR__ . '/../app/Modules/Configuracion/routes.php')($router, $configuracionController);
 
 return $router;

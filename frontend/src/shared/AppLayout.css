@@ -90,3 +90,21 @@
   .topbar__user div { display: none; }
   .app-content__inner { padding: 18px 13px 32px; }
 }
+
+.topbar__user {
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.topbar__user:hover,
+.topbar__user:focus-visible {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  outline: 0;
+}

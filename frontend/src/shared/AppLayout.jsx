@@ -6,12 +6,14 @@ import { APP_NAME, INSTITUTION_NAME } from "../config/env";
 import { CONFIGURATION_NAV_ITEM, NAVIGATION_GROUPS } from "../config/navigation";
 import { useAuth } from "../app/AuthProvider";
 import mutualLogo from "../assets/images/logo_perfil_sf.png";
+import ProfileModal from "./ProfileModal";
 import "./AppLayout.css";
 
 export default function AppLayout() {
   const [open, setOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const auth = useAuth();
@@ -54,13 +56,19 @@ export default function AppLayout() {
 
         <div className="topbar__right">
           <span className="topbar__section">{activeLabel}</span>
-          <div className="topbar__user">
+          <button
+            className="topbar__user"
+            type="button"
+            onClick={() => setProfileOpen(true)}
+            title="Ver mi perfil"
+            aria-label="Ver mi perfil"
+          >
             <FontAwesomeIcon icon={faUserCircle} />
             <div>
               <strong>{auth.usuario?.nombre || auth.usuario?.username || "Usuario"}</strong>
               <span>{auth.usuario?.rol || ""}</span>
             </div>
-          </div>
+          </button>
 
           {auth.can(CONFIGURATION_NAV_ITEM.permission) && (
             CONFIGURATION_NAV_ITEM.enabled === false ? (
@@ -161,6 +169,12 @@ export default function AppLayout() {
       <main className="app-content">
         <div className="app-content__inner"><Outlet /></div>
       </main>
+
+      <ProfileModal
+        onClose={() => setProfileOpen(false)}
+        open={profileOpen}
+        session={auth.session}
+      />
     </div>
   );
 }
