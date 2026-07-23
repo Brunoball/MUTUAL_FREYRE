@@ -78,6 +78,7 @@ final class PersonasService
             [
                 'tipo_persona' => $normalized['general']['tipo_persona'],
                 'es_asociado' => $normalized['asociado'] !== null,
+                'conyuge' => $normalized['conyuge'] !== null,
                 'autorizados' => count($normalized['autorizados']),
                 'beneficiarios' => count($normalized['beneficiarios']),
             ],
@@ -112,6 +113,7 @@ final class PersonasService
             [
                 'tipo_anterior' => $before['persona']['tipo_persona'] ?? null,
                 'tipo_nuevo' => $normalized['general']['tipo_persona'],
+                'conyuge' => $normalized['conyuge'] !== null,
                 'autorizados' => count($normalized['autorizados']),
                 'beneficiarios' => count($normalized['beneficiarios']),
             ],
@@ -264,6 +266,7 @@ final class PersonasService
             $this->repository->saveAssociate($personId, $normalized['asociado'], $userId);
         }
 
+        $this->repository->syncSpouseLink($personId, $normalized['conyuge'], $userId);
         $links = array_merge($normalized['autorizados'], $normalized['beneficiarios']);
         $this->repository->replaceOperationalLinks($personId, $links, $userId);
     }
@@ -282,21 +285,51 @@ final class PersonasService
 
         $generalInput = is_array($input['general'] ?? null) ? $input['general'] : [];
         $physicalInput = is_array($input['fisica'] ?? null) ? $input['fisica'] : [];
+        $spouseInput = is_array($input['conyuge'] ?? null) ? $input['conyuge'] : [];
         $legalInput = is_array($input['juridica'] ?? null) ? $input['juridica'] : [];
         $financialInput = is_array($input['financieros'] ?? null) ? $input['financieros'] : [];
         $associateInput = is_array($input['asociado'] ?? null) ? $input['asociado'] : [];
 
-        $taxId = $this->digits($generalInput['cuit_cuil'] ?? null, 11);
+        $taxId = $this->digitsOnly(
+            $generalInput['cuit_cuil'] ?? null,
+            11,
+            'general.cuit_cuil',
+            $errors,
+            'El CUIT/CUIL'
+        );
         if ($taxId !== null && strlen($taxId) !== 11) {
             $errors['general.cuit_cuil'] = 'El CUIT/CUIL debe tener 11 dígitos.';
         } elseif ($taxId !== null && $this->repository->duplicateExists('cuit_cuil', $taxId, $personId)) {
             $errors['general.cuit_cuil'] = 'Ya existe una persona con ese CUIT/CUIL.';
         }
 
-        $email = $this->nullableString($generalInput['email'] ?? null, 180);
+        $email = $this->nullableEmail($generalInput['email'] ?? null, 180);
         if ($email !== null && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors['general.email'] = 'El correo electrónico no es válido.';
         }
+
+        $phone = $this->phone(
+            $generalInput['telefono'] ?? null,
+            'general.telefono',
+            $errors
+        );
+        $alternatePhone = $this->phone(
+            $generalInput['telefono_alternativo'] ?? null,
+            'general.telefono_alternativo',
+            $errors
+        );
+        $address = $this->nullableString($generalInput['domicilio'] ?? null, 220);
+        if ($address !== null && !preg_match("~^[\\p{L}\\p{M}\\p{N}\\s.,'°ºª#()/\\-]+$~u", $address)) {
+            $errors['general.domicilio'] = 'El domicilio solo admite letras, números y signos habituales.';
+        }
+
+        $grossIncomeNumber = $this->digitsOnly(
+            $generalInput['ingresos_brutos'] ?? null,
+            20,
+            'general.ingresos_brutos',
+            $errors,
+            'Ingresos brutos'
+        );
 
         $countryId = $this->catalogId($generalInput['id_pais_residencia'] ?? 1, 'pais', 'general.id_pais_residencia', $errors, true);
         $localityId = $this->catalogId($generalInput['id_localidad'] ?? null, 'localidad', 'general.id_localidad', $errors);
@@ -309,9 +342,18 @@ final class PersonasService
         if ($type === 'FISICA') {
             $firstNames = $this->requiredString($physicalInput['nombres'] ?? null, 120, 'fisica.nombres', $errors);
             $lastNames = $this->requiredString($physicalInput['apellidos'] ?? null, 120, 'fisica.apellidos', $errors);
-            $dni = $this->digits($physicalInput['dni'] ?? null, 12);
-            if ($dni === null || strlen($dni) < 7) {
-                $errors['fisica.dni'] = 'Ingresá un DNI válido.';
+            $this->validatePersonName($firstNames, 'fisica.nombres', $errors);
+            $this->validatePersonName($lastNames, 'fisica.apellidos', $errors);
+
+            $dni = $this->digitsOnly(
+                $physicalInput['dni'] ?? null,
+                8,
+                'fisica.dni',
+                $errors,
+                'El DNI'
+            );
+            if ($dni === null || strlen($dni) < 7 || strlen($dni) > 8) {
+                $errors['fisica.dni'] = 'El DNI debe tener 7 u 8 dígitos.';
             } elseif ($this->repository->duplicateExists('dni', $dni, $personId)) {
                 $errors['fisica.dni'] = 'Ya existe una persona con ese DNI.';
             }
@@ -341,23 +383,36 @@ final class PersonasService
                 $errors
             );
 
+            $birthDate = $this->date(
+                $physicalInput['fecha_nacimiento'] ?? null,
+                'fisica.fecha_nacimiento',
+                $errors
+            );
+            $this->notFuture($birthDate, 'fisica.fecha_nacimiento', 'La fecha de nacimiento', $errors);
+            $workPhone = $this->phone(
+                $physicalInput['telefono_laboral'] ?? null,
+                'fisica.telefono_laboral',
+                $errors
+            );
+
             $name = trim(($lastNames ?? '') . ', ' . ($firstNames ?? ''), ', ');
             $physical = [
                 'nombres' => $firstNames,
                 'apellidos' => $lastNames,
                 'dni' => $dni,
-                'fecha_nacimiento' => $this->date($physicalInput['fecha_nacimiento'] ?? null, 'fisica.fecha_nacimiento', $errors),
+                'fecha_nacimiento' => $birthDate,
                 'genero' => $gender,
                 'estado_civil' => $marital,
                 'id_pais_nacionalidad' => $nationalityId,
                 'id_relacion_laboral' => $employmentId,
-                'profesion' => $this->nullableString($physicalInput['profesion'] ?? null, 140),
-                'empleador' => $this->nullableString($physicalInput['empleador'] ?? null, 180),
-                'lugar_trabajo' => $this->nullableString($physicalInput['lugar_trabajo'] ?? null, 220),
-                'telefono_laboral' => $this->nullableString($physicalInput['telefono_laboral'] ?? null, 50),
+                'profesion' => $this->structuredString($physicalInput['profesion'] ?? null, 140, 'fisica.profesion', $errors),
+                'empleador' => $this->structuredString($physicalInput['empleador'] ?? null, 180, 'fisica.empleador', $errors),
+                'lugar_trabajo' => $this->structuredString($physicalInput['lugar_trabajo'] ?? null, 220, 'fisica.lugar_trabajo', $errors),
+                'telefono_laboral' => $workPhone,
             ];
         } else {
             $businessName = $this->requiredString($legalInput['razon_social'] ?? null, 200, 'juridica.razon_social', $errors);
+            $this->validateStructuredText($businessName, 'juridica.razon_social', $errors);
             if ($taxId === null) {
                 $errors['general.cuit_cuil'] = 'El CUIT es obligatorio para una persona jurídica.';
             }
@@ -371,19 +426,32 @@ final class PersonasService
             if ($closingDate !== null && !preg_match('/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])$/', $closingDate)) {
                 $errors['juridica.fecha_cierre_ejercicio'] = 'Usá el formato DD/MM.';
             }
+            $constitutionDate = $this->date(
+                $legalInput['fecha_constitucion'] ?? null,
+                'juridica.fecha_constitucion',
+                $errors
+            );
+            $this->notFuture($constitutionDate, 'juridica.fecha_constitucion', 'La fecha de constitución', $errors);
+
             $name = (string)($businessName ?? '');
             $legal = [
                 'razon_social' => $businessName,
-                'nombre_fantasia' => $this->nullableString($legalInput['nombre_fantasia'] ?? null, 180),
+                'nombre_fantasia' => $this->structuredString($legalInput['nombre_fantasia'] ?? null, 180, 'juridica.nombre_fantasia', $errors),
                 'id_tipo_societario' => $companyTypeId,
-                'fecha_constitucion' => $this->date($legalInput['fecha_constitucion'] ?? null, 'juridica.fecha_constitucion', $errors),
-                'numero_inscripcion' => $this->nullableString($legalInput['numero_inscripcion'] ?? null, 100),
-                'autoridad_contralor' => $this->nullableString($legalInput['autoridad_contralor'] ?? null, 160),
+                'fecha_constitucion' => $constitutionDate,
+                'numero_inscripcion' => $this->structuredString($legalInput['numero_inscripcion'] ?? null, 100, 'juridica.numero_inscripcion', $errors),
+                'autoridad_contralor' => $this->structuredString($legalInput['autoridad_contralor'] ?? null, 160, 'juridica.autoridad_contralor', $errors),
                 'fecha_cierre_ejercicio' => $closingDate,
             ];
         }
 
-        $cbu = $this->digits($financialInput['cbu'] ?? null, 22);
+        $cbu = $this->digitsOnly(
+            $financialInput['cbu'] ?? null,
+            22,
+            'financieros.cbu',
+            $errors,
+            'El CBU'
+        );
         if ($cbu !== null && strlen($cbu) !== 22) {
             $errors['financieros.cbu'] = 'El CBU debe tener 22 dígitos.';
         } elseif ($cbu !== null && $this->repository->duplicateExists('cbu', $cbu, $personId)) {
@@ -415,10 +483,21 @@ final class PersonasService
             $entryDate = $this->date($associateInput['fecha_ingreso'] ?? null, 'asociado.fecha_ingreso', $errors);
             if ($entryDate === null) {
                 $errors['asociado.fecha_ingreso'] = 'La fecha de ingreso es obligatoria.';
+            } else {
+                $this->notFuture($entryDate, 'asociado.fecha_ingreso', 'La fecha de ingreso', $errors);
             }
+            $inaesDate = $this->date(
+                $associateInput['fecha_alta_inaes'] ?? null,
+                'asociado.fecha_alta_inaes',
+                $errors
+            );
+            $this->notFuture($inaesDate, 'asociado.fecha_alta_inaes', 'La fecha de alta en INAES', $errors);
+
             $leaveDate = $this->date($associateInput['fecha_baja'] ?? null, 'asociado.fecha_baja', $errors);
             if ($status === 'BAJA' && $leaveDate === null) {
                 $errors['asociado.fecha_baja'] = 'Indicá la fecha de baja.';
+            } elseif ($leaveDate !== null && $entryDate !== null && $leaveDate < $entryDate) {
+                $errors['asociado.fecha_baja'] = 'La fecha de baja no puede ser anterior a la fecha de ingreso.';
             }
             $associate = [
                 'fecha_ingreso' => $entryDate,
@@ -427,11 +506,15 @@ final class PersonasService
                 'estado' => $status,
                 'cobra_cuota' => $this->bool($associateInput['cobra_cuota'] ?? true) ? 1 : 0,
                 'debito_automatico' => $this->bool($associateInput['debito_automatico'] ?? false) ? 1 : 0,
-                'fecha_alta_inaes' => $this->date($associateInput['fecha_alta_inaes'] ?? null, 'asociado.fecha_alta_inaes', $errors),
+                'fecha_alta_inaes' => $inaesDate,
                 'fecha_baja' => $status === 'BAJA' ? $leaveDate : null,
-                'motivo_baja' => $status === 'BAJA' ? $this->nullableString($associateInput['motivo_baja'] ?? null, 255) : null,
+                'motivo_baja' => $status === 'BAJA' ? $this->freeText($associateInput['motivo_baja'] ?? null, 255, 'asociado.motivo_baja', $errors) : null,
             ];
         }
+
+        $spouse = $type === 'FISICA'
+            ? $this->normalizeSpouse($spouseInput, $personId, $errors)
+            : null;
 
         $authorized = $this->normalizeLinks(
             is_array($input['autorizados'] ?? null) ? $input['autorizados'] : [],
@@ -458,6 +541,12 @@ final class PersonasService
             'general.fecha_actualizacion_arca',
             $errors
         );
+        $this->notFuture(
+            $arcaUpdateDate,
+            'general.fecha_actualizacion_arca',
+            'La fecha de actualización ARCA',
+            $errors
+        );
         $monthlyIncome = $this->decimal(
             $financialInput['ingresos_mensuales'] ?? null,
             'financieros.ingresos_mensuales',
@@ -466,6 +555,47 @@ final class PersonasService
         $estimatedAssets = $this->decimal(
             $financialInput['patrimonio_estimado'] ?? null,
             'financieros.patrimonio_estimado',
+            $errors
+        );
+        $cbuAlias = $this->nullableString($financialInput['alias_cbu'] ?? null, 80);
+        if ($cbuAlias !== null && !preg_match('/^[\p{L}\p{M}\p{N}._-]+$/u', $cbuAlias)) {
+            $errors['financieros.alias_cbu'] = 'El alias solo admite letras, números, puntos, guiones y guion bajo.';
+        }
+
+        $localityExterior = $this->structuredString(
+            $generalInput['localidad_exterior'] ?? null,
+            120,
+            'general.localidad_exterior',
+            $errors
+        );
+        $activity = $this->structuredString(
+            $generalInput['actividad'] ?? null,
+            180,
+            'general.actividad',
+            $errors
+        );
+        $generalObservations = $this->freeText(
+            $generalInput['observaciones'] ?? null,
+            4000,
+            'general.observaciones',
+            $errors
+        );
+        $fundsOrigin = $this->freeText(
+            $financialInput['origen_fondos'] ?? null,
+            500,
+            'financieros.origen_fondos',
+            $errors
+        );
+        $transactionProfile = $this->freeText(
+            $financialInput['perfil_transaccional'] ?? null,
+            500,
+            'financieros.perfil_transaccional',
+            $errors
+        );
+        $bank = $this->structuredString(
+            $financialInput['banco'] ?? null,
+            120,
+            'financieros.banco',
             $errors
         );
 
@@ -479,36 +609,78 @@ final class PersonasService
                 'nombre_exhibicion' => $name,
                 'cuit_cuil' => $taxId,
                 'email' => $email,
-                'telefono' => $this->nullableString($generalInput['telefono'] ?? null, 50),
-                'telefono_alternativo' => $this->nullableString($generalInput['telefono_alternativo'] ?? null, 50),
-                'domicilio' => $this->nullableString($generalInput['domicilio'] ?? null, 220),
+                'telefono' => $phone,
+                'telefono_alternativo' => $alternatePhone,
+                'domicilio' => $address,
                 'id_localidad' => $localityId,
-                'localidad_exterior' => $this->nullableString($generalInput['localidad_exterior'] ?? null, 120),
+                'localidad_exterior' => $localityExterior,
                 'id_pais_residencia' => $countryId,
                 'id_zona_geografica' => $zoneId,
                 'id_condicion_iva' => $vatId,
-                'ingresos_brutos' => $this->nullableString($generalInput['ingresos_brutos'] ?? null, 50),
-                'actividad' => $this->nullableString($generalInput['actividad'] ?? null, 180),
+                'ingresos_brutos' => $grossIncomeNumber,
+                'actividad' => $activity,
                 'residente' => $this->bool($generalInput['residente'] ?? true) ? 1 : 0,
                 'es_pep' => $this->bool($generalInput['es_pep'] ?? false) ? 1 : 0,
                 'sujeto_obligado' => $this->bool($generalInput['sujeto_obligado'] ?? false) ? 1 : 0,
                 'fecha_actualizacion_arca' => $arcaUpdateDate,
-                'observaciones' => $this->nullableString($generalInput['observaciones'] ?? null, 4000),
+                'observaciones' => $generalObservations,
             ],
             'fisica' => $physical,
             'juridica' => $legal,
             'financieros' => [
                 'ingresos_mensuales' => $monthlyIncome,
                 'patrimonio_estimado' => $estimatedAssets,
-                'origen_fondos' => $this->nullableString($financialInput['origen_fondos'] ?? null, 500),
-                'perfil_transaccional' => $this->nullableString($financialInput['perfil_transaccional'] ?? null, 500),
-                'banco' => $this->nullableString($financialInput['banco'] ?? null, 120),
+                'origen_fondos' => $fundsOrigin,
+                'perfil_transaccional' => $transactionProfile,
+                'banco' => $bank,
                 'cbu' => $cbu,
-                'alias_cbu' => $this->nullableString($financialInput['alias_cbu'] ?? null, 80),
+                'alias_cbu' => $cbuAlias,
             ],
             'asociado' => $associate,
+            'conyuge' => $spouse,
             'autorizados' => $authorized,
             'beneficiarios' => $beneficiaries,
+        ];
+    }
+
+    private function normalizeSpouse(
+        array $input,
+        ?int $personId,
+        array &$errors
+    ): ?array {
+        $rawLinkedId = $input['id_persona_vinculada'] ?? null;
+        if ($rawLinkedId === null || $rawLinkedId === '') {
+            return null;
+        }
+
+        $linkedId = filter_var($rawLinkedId, FILTER_VALIDATE_INT);
+        if (!$linkedId || $linkedId < 1) {
+            $errors['conyuge.id_persona_vinculada'] = 'Seleccioná una persona física registrada.';
+            return null;
+        }
+        $linkedId = (int)$linkedId;
+
+        if ($personId !== null && $linkedId === $personId) {
+            $errors['conyuge.id_persona_vinculada'] = 'Una persona no puede ser su propio cónyuge.';
+        } elseif (!$this->repository->linkablePhysicalPersonExists($linkedId)) {
+            $errors['conyuge.id_persona_vinculada'] = 'El cónyuge debe ser una persona física activa.';
+        } elseif ($this->repository->spouseConflictExists($linkedId, $personId)) {
+            $errors['conyuge.id_persona_vinculada'] = 'La persona seleccionada ya tiene un vínculo de cónyuge activo.';
+        }
+
+        $from = $this->date(
+            $input['fecha_desde'] ?? null,
+            'conyuge.fecha_desde',
+            $errors
+        );
+        if ($from !== null && $from > (new \DateTimeImmutable('today'))->format('Y-m-d')) {
+            $errors['conyuge.fecha_desde'] = 'La fecha del vínculo no puede ser futura.';
+        }
+
+        return [
+            'id_persona_vinculada' => $linkedId,
+            'fecha_desde' => $from,
+            'observaciones' => $this->freeText($input['observaciones'] ?? null, 500, 'conyuge.observaciones', $errors),
         ];
     }
 
@@ -574,12 +746,12 @@ final class PersonasService
                 'id_persona_vinculada' => $linkedId,
                 'tipo_vinculo' => $type,
                 'porcentaje_participacion' => $percentage,
-                'alcance' => $this->nullableString($item['alcance'] ?? null, 255),
+                'alcance' => $this->freeText($item['alcance'] ?? null, 255, "{$prefix}.{$index}.alcance", $errors),
                 'operaciones_permitidas' => $operations === [] ? null : json_encode($operations, JSON_UNESCAPED_UNICODE),
                 'fecha_desde' => $from,
                 'fecha_hasta' => $to,
                 'activo' => $this->bool($item['activo'] ?? true) ? 1 : 0,
-                'observaciones' => $this->nullableString($item['observaciones'] ?? null, 500),
+                'observaciones' => $this->freeText($item['observaciones'] ?? null, 500, "{$prefix}.{$index}.observaciones", $errors),
             ];
         }
         return $normalized;
@@ -625,6 +797,95 @@ final class PersonasService
         throw $error;
     }
 
+    private function nullableEmail(mixed $value, int $maxLength): ?string
+    {
+        $text = trim((string)($value ?? ''));
+        if ($text === '') {
+            return null;
+        }
+        return mb_substr(mb_strtolower($text, 'UTF-8'), 0, $maxLength, 'UTF-8');
+    }
+
+    private function digitsOnly(
+        mixed $value,
+        int $maxLength,
+        string $field,
+        array &$errors,
+        string $label
+    ): ?string {
+        $text = trim((string)($value ?? ''));
+        if ($text === '') {
+            return null;
+        }
+        if (!preg_match('/^\d+$/', $text)) {
+            $errors[$field] = $label . ' solo admite números.';
+            return null;
+        }
+        if (strlen($text) > $maxLength) {
+            $errors[$field] = $label . ' supera la cantidad máxima de dígitos.';
+            return substr($text, 0, $maxLength);
+        }
+        return $text;
+    }
+
+    private function phone(mixed $value, string $field, array &$errors): ?string
+    {
+        $phone = $this->digitsOnly($value, 20, $field, $errors, 'El teléfono');
+        if ($phone !== null && strlen($phone) < 6) {
+            $errors[$field] = 'El teléfono debe tener entre 6 y 20 dígitos.';
+        }
+        return $phone;
+    }
+
+    private function validatePersonName(?string $value, string $field, array &$errors): void
+    {
+        if ($value !== null && !preg_match("~^[\\p{L}\\p{M}\\s'\\-]+$~u", $value)) {
+            $errors[$field] = 'Ingresá solamente letras.';
+        }
+    }
+
+    private function notFuture(
+        ?string $value,
+        string $field,
+        string $label,
+        array &$errors
+    ): void {
+        if ($value !== null && $value > (new \DateTimeImmutable('today'))->format('Y-m-d')) {
+            $errors[$field] = $label . ' no puede ser futura.';
+        }
+    }
+
+    private function validateStructuredText(?string $value, string $field, array &$errors): void
+    {
+        if ($value !== null && !preg_match("~^[\p{L}\p{M}\p{N}\s.,'&°ºª#():/+\-]+$~u", $value)) {
+            $errors[$field] = 'El campo contiene caracteres no permitidos.';
+        }
+    }
+
+    private function structuredString(
+        mixed $value,
+        int $maxLength,
+        string $field,
+        array &$errors
+    ): ?string {
+        $text = $this->nullableString($value, $maxLength);
+        $this->validateStructuredText($text, $field, $errors);
+        return $text;
+    }
+
+    private function freeText(
+        mixed $value,
+        int $maxLength,
+        string $field,
+        array &$errors
+    ): ?string {
+        $text = $this->nullableString($value, $maxLength);
+        if ($text !== null && !preg_match("~^[\p{L}\p{M}\p{N}\s.,;:'\"¿?¡!°ºª#%&@$()\[\]{}\/+_=\-]+$~u", $text)) {
+            $errors[$field] = 'El campo contiene caracteres no permitidos.';
+        }
+        return $text;
+    }
+
     private function nullableString(mixed $value, int $maxLength): ?string
     {
         $text = trim((string)($value ?? ''));
@@ -646,12 +907,6 @@ final class PersonasService
         return $text;
     }
 
-    private function digits(mixed $value, int $maxLength): ?string
-    {
-        $digits = preg_replace('/\D+/', '', (string)($value ?? '')) ?? '';
-        return $digits === '' ? null : substr($digits, 0, $maxLength);
-    }
-
     private function bool(mixed $value): bool
     {
         return filter_var($value, FILTER_VALIDATE_BOOL);
@@ -662,11 +917,14 @@ final class PersonasService
         if ($value === null || $value === '') {
             return null;
         }
-        $normalized = str_replace(',', '.', trim((string)$value));
-        if (!is_numeric($normalized) || (float)$normalized < 0) {
-            $errors[$field] = 'Ingresá un importe válido, igual o mayor a cero.';
+
+        $text = trim((string)$value);
+        if (!preg_match('/^\d{1,16}(?:[.,]\d{1,2})?$/', $text)) {
+            $errors[$field] = 'Ingresá un número válido con hasta 2 decimales.';
             return null;
         }
+
+        $normalized = str_replace(',', '.', $text);
         return round((float)$normalized, 2);
     }
 

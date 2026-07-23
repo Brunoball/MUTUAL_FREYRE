@@ -48,8 +48,9 @@ export function EntityTabs({
         return (
           <button
             aria-controls={`${tabId(idPrefix, tab.value)}-panel`}
+            aria-invalid={tab.hasError ? "true" : undefined}
             aria-selected={selected}
-            className={`entity-form-tab ${selected ? "is-active" : ""}`}
+            className={`entity-form-tab ${selected ? "is-active" : ""} ${tab.hasError ? "has-error" : ""}`.trim()}
             id={tabId(idPrefix, tab.value)}
             key={tab.value}
             onClick={() => onChange(tab.value)}

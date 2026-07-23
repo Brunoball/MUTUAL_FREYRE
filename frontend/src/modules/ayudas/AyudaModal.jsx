@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CrudModal from "../../Global/components/CrudModal";
 import GlobalIcon from "../../Global/components/GlobalIcon";
+import SearchableSelect from "../../Global/components/SearchableSelect";
 import { getAyudasCatalogos, liquidarAyuda, simularAyuda } from "./ayudas.api";
 import {
   addMonths,
@@ -121,6 +122,16 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
   const guarantorOptions = (localCatalogs?.garantes || []).filter(
     (item) => Number(item.id) !== Number(selectedAssociate?.id_persona || 0),
   );
+  const associateOptions = (localCatalogs?.socios || []).map((item) => ({
+    value: String(item.id),
+    label: `N° ${item.numero_socio} · ${item.nombre} · ${item.documento || "S/D"}`,
+    searchText: `${item.numero_socio || ""} ${item.nombre || ""} ${item.documento || ""}`,
+  }));
+  const toGuarantorOption = (item) => ({
+    value: String(item.id),
+    label: `${item.nombre} · ${item.documento || "S/D"}`,
+    searchText: `${item.nombre || ""} ${item.documento || ""}`,
+  });
 
   const update = (field, value) => {
     setForm((current) => {
@@ -320,14 +331,15 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
             </select>
           </Field>
           <Field error={fieldError("id_asociado")} label="Socio" required className="is-span-2">
-            <select onChange={(event) => update("id_asociado", event.target.value)} value={form.id_asociado}>
-              <option value="">SELECCIONAR SOCIO...</option>
-              {(localCatalogs?.socios || []).map((item) => (
-                <option key={item.id} value={item.id}>
-                  N° {item.numero_socio} · {item.nombre} · {item.documento || "S/D"}
-                </option>
-              ))}
-            </select>
+            <SearchableSelect
+              ariaLabel="Buscar socio"
+              clearLabel="SIN SOCIO SELECCIONADO"
+              emptyMessage="NO SE ENCONTRARON SOCIOS"
+              onChange={(value) => update("id_asociado", value)}
+              options={associateOptions}
+              placeholder="BUSCAR POR N° DE SOCIO, NOMBRE O DOCUMENTO..."
+              value={form.id_asociado}
+            />
           </Field>
           <Field label="Moneda">
             <input readOnly value={currency === "USD" ? "DÓLARES (USD)" : "PESOS (ARS)"} />
@@ -493,16 +505,30 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
             </datalist>
           </Field>
           <Field label="Garante 1" className="is-span-2">
-            <select value={form.garante_1} onChange={(event) => update("garante_1", event.target.value)}>
-              <option value="">SIN GARANTE</option>
-              {guarantorOptions.filter((item) => Number(item.id) !== Number(form.garante_2 || 0)).map((item) => <option key={item.id} value={item.id}>{item.nombre} · {item.documento || "S/D"}</option>)}
-            </select>
+            <SearchableSelect
+              ariaLabel="Buscar primer garante"
+              clearLabel="SIN GARANTE"
+              emptyMessage="NO SE ENCONTRARON PERSONAS"
+              onChange={(value) => update("garante_1", value)}
+              options={guarantorOptions
+                .filter((item) => Number(item.id) !== Number(form.garante_2 || 0))
+                .map(toGuarantorOption)}
+              placeholder="BUSCAR GARANTE POR NOMBRE O DOCUMENTO..."
+              value={form.garante_1}
+            />
           </Field>
           <Field label="Garante 2" className="is-span-2">
-            <select value={form.garante_2} onChange={(event) => update("garante_2", event.target.value)}>
-              <option value="">SIN SEGUNDO GARANTE</option>
-              {guarantorOptions.filter((item) => Number(item.id) !== Number(form.garante_1 || 0)).map((item) => <option key={item.id} value={item.id}>{item.nombre} · {item.documento || "S/D"}</option>)}
-            </select>
+            <SearchableSelect
+              ariaLabel="Buscar segundo garante"
+              clearLabel="SIN SEGUNDO GARANTE"
+              emptyMessage="NO SE ENCONTRARON PERSONAS"
+              onChange={(value) => update("garante_2", value)}
+              options={guarantorOptions
+                .filter((item) => Number(item.id) !== Number(form.garante_1 || 0))
+                .map(toGuarantorOption)}
+              placeholder="BUSCAR GARANTE POR NOMBRE O DOCUMENTO..."
+              value={form.garante_2}
+            />
           </Field>
           <Field label="Detalle" className="is-span-2"><input value={form.detalle} onChange={(event) => update("detalle", event.target.value)} /></Field>
           <Field label="Observaciones" className="is-span-2"><input value={form.observaciones} onChange={(event) => update("observaciones", event.target.value)} /></Field>

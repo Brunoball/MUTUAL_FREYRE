@@ -208,6 +208,26 @@ export default function PersonasPage() {
     setFormErrors({});
   };
 
+  const clearFormError = (path) => {
+    setFormErrors((current) => {
+      const next = { ...current };
+      Object.keys(next).forEach((key) => {
+        if (key === path || key.startsWith(`${path}.`)) delete next[key];
+      });
+      if (path.startsWith("beneficiarios.")) delete next.beneficiarios;
+      return next;
+    });
+  };
+
+  const showValidationErrors = (nextErrors) => {
+    setFormErrors(nextErrors || {});
+    setFeedback({
+      type: "error",
+      message:
+        "Revisá los campos marcados en rojo. La pestaña que contiene el error también quedó resaltada.",
+    });
+  };
+
   const savePerson = async (payload) => {
     setSaving(true);
     setFormErrors({});
@@ -539,7 +559,7 @@ export default function PersonasPage() {
                       title="Ver información"
                       type="button"
                     >
-                      <GlobalActionIcon name="eye" size={12} />
+                      <GlobalActionIcon name="info" size={12} />
                     </button>
                     {canManage ? (
                       <>
@@ -595,8 +615,10 @@ export default function PersonasPage() {
           detail={modal.detail}
           errors={formErrors}
           mode={modal.mode}
+          onClearError={clearFormError}
           onClose={closeModal}
           onSave={savePerson}
+          onValidationError={showValidationErrors}
           saving={saving}
         />
       ) : null}

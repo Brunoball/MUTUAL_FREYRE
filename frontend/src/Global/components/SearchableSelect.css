@@ -1,0 +1,158 @@
+.searchable-select {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.searchable-select.is-open {
+  z-index: 80;
+}
+
+.searchable-select__control {
+  position: relative;
+  width: 100%;
+}
+
+.searchable-select__control > input {
+  width: 100%;
+  padding-right: 34px !important;
+  cursor: text;
+}
+
+.searchable-select__chevron {
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  transform: translateY(-54%);
+  color: #64748b;
+  font-size: 17px;
+  line-height: 1;
+  pointer-events: none;
+  transition: transform 0.16s ease;
+}
+
+.searchable-select.is-open .searchable-select__chevron {
+  transform: translateY(-42%) rotate(180deg);
+}
+
+.searchable-select__menu {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  max-height: 245px;
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 18px 38px -22px rgba(15, 23, 42, 0.72);
+}
+
+.searchable-select__option,
+.searchable-select__empty {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 7px;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.searchable-select__option {
+  cursor: pointer;
+}
+
+.searchable-select__option:hover,
+.searchable-select__option.is-active {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.searchable-select__option.is-selected {
+  background: #eaf2fb;
+  color: #0054a6;
+  font-weight: 700;
+}
+
+.searchable-select__option.is-clear {
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 7px 7px 3px 3px;
+  color: #64748b;
+}
+
+.searchable-select__empty {
+  justify-content: center;
+  color: #64748b;
+  text-align: center;
+}
+
+.searchable-select.is-disabled .searchable-select__control,
+.searchable-select.is-disabled .searchable-select__control > input {
+  cursor: not-allowed;
+}
+
+/* Apariencia dentro de los formularios flotantes de Personas. */
+.entity-field > .searchable-select .searchable-select__control > input {
+  min-height: 47px;
+  padding: 12px 34px 12px 11px;
+  outline: 0;
+  border: 1px solid color-mix(in srgb, var(--navy-900) 13%, white);
+  border-radius: 11px;
+  background: white;
+  box-shadow: 0 1px 0 rgba(7, 23, 42, 0.025);
+  color: var(--entity-modal-ink);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color var(--entity-modal-transition), box-shadow var(--entity-modal-transition), background var(--entity-modal-transition);
+}
+
+.entity-field > .searchable-select .searchable-select__control > input:focus {
+  border-color: color-mix(in srgb, var(--entity-modal-action) 45%, white);
+  background: white;
+  box-shadow: var(--entity-modal-focus), 0 8px 18px -18px rgba(7, 23, 42, 0.5);
+}
+
+.entity-field > .searchable-select.is-disabled .searchable-select__control > input {
+  background: var(--surface-soft);
+  color: color-mix(in srgb, var(--entity-modal-ink) 72%, white);
+  opacity: 1;
+}
+
+.entity-field.has-error > .searchable-select .searchable-select__control > input {
+  border-color: var(--entity-modal-danger);
+  background: color-mix(in srgb, var(--entity-modal-danger) 4%, white);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--entity-modal-danger) 10%, transparent);
+}
+
+/* Permite que el desplegable salga del panel sin quedar recortado. */
+.entity-form-panel:has(.searchable-select.is-open) {
+  position: relative;
+  z-index: 30;
+  overflow: visible;
+}
+
+/* Apariencia dentro de Ayudas Económicas. */
+.ayuda-field > .searchable-select .searchable-select__control > input {
+  min-height: 38px;
+  padding: 8px 34px 8px 10px;
+  outline: none;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #0f172a;
+  font: inherit;
+  font-size: 12px;
+}
+
+.ayuda-field > .searchable-select .searchable-select__control > input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.ayuda-field.has-error > .searchable-select .searchable-select__control > input {
+  border-color: #ef4444;
+}

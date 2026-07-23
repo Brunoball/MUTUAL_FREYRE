@@ -1,6 +1,9 @@
 import { API_BASE_URL } from "../config/env";
 import { clearStoredSession, getCsrfToken } from "./session";
 
+const NETWORK_RETRY_DELAY_MS = 350;
+const IDEMPOTENT_METHODS = new Set(["GET", "HEAD"]);
+
 function buildUrl(path, query) {
   const normalizedPath = String(path || "").replace(/^\/+/, "");
   const url = new URL(`${API_BASE_URL}/${normalizedPath}`, window.location.origin);
@@ -12,10 +15,46 @@ function buildUrl(path, query) {
   return url.toString();
 }
 
+const wait = (milliseconds) =>
+  new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+const isAbortError = (error, signal) =>
+  signal?.aborted || error?.name === "AbortError";
+
+async function fetchWithNetworkRetry(url, init, method, retryAttempt = 0) {
+  try {
+    return await fetch(url, init);
+  } catch (error) {
+    if (isAbortError(error, init.signal)) {
+      throw error;
+    }
+
+    const canRetry =
+      IDEMPOTENT_METHODS.has(method) &&
+      retryAttempt < 1 &&
+      !init.signal?.aborted;
+
+    if (canRetry) {
+      await wait(NETWORK_RETRY_DELAY_MS);
+      if (init.signal?.aborted) {
+        throw new DOMException("La solicitud fue cancelada.", "AbortError");
+      }
+      return fetchWithNetworkRetry(url, init, method, retryAttempt + 1);
+    }
+
+    const networkError = new Error(
+      "No se pudo conectar con el servidor. Verificá que el backend esté iniciado y volvé a intentar.",
+    );
+    networkError.code = "NETWORK_ERROR";
+    networkError.cause = error;
+    throw networkError;
+  }
+}
+
 async function request(path, options = {}) {
   const method = String(options.method || "GET").toUpperCase();
   const hasBody = options.body !== undefined && options.body !== null;
-  const response = await fetch(buildUrl(path, options.query), {
+  const requestInit = {
     method,
     credentials: "include",
     signal: options.signal,
@@ -28,7 +67,13 @@ async function request(path, options = {}) {
       ...(options.headers || {}),
     },
     ...(hasBody ? { body: JSON.stringify(options.body) } : {}),
-  });
+  };
+
+  const response = await fetchWithNetworkRetry(
+    buildUrl(path, options.query),
+    requestInit,
+    method,
+  );
 
   const text = await response.text();
   let payload;

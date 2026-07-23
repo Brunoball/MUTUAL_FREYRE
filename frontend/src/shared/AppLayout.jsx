@@ -63,14 +63,26 @@ export default function AppLayout() {
           </div>
 
           {auth.can(CONFIGURATION_NAV_ITEM.permission) && (
-            <NavLink
-              className={({ isActive }) => `icon-button topbar__config ${isActive ? "is-active" : ""}`}
-              to={CONFIGURATION_NAV_ITEM.path}
-              title={CONFIGURATION_NAV_ITEM.label}
-              aria-label={CONFIGURATION_NAV_ITEM.label}
-            >
-              <FontAwesomeIcon icon={CONFIGURATION_NAV_ITEM.icon} />
-            </NavLink>
+            CONFIGURATION_NAV_ITEM.enabled === false ? (
+              <button
+                aria-label={`${CONFIGURATION_NAV_ITEM.label} (próximamente)`}
+                className="icon-button topbar__config is-disabled"
+                disabled
+                title={`${CONFIGURATION_NAV_ITEM.label} (próximamente)`}
+                type="button"
+              >
+                <FontAwesomeIcon icon={CONFIGURATION_NAV_ITEM.icon} />
+              </button>
+            ) : (
+              <NavLink
+                className={({ isActive }) => `icon-button topbar__config ${isActive ? "is-active" : ""}`}
+                to={CONFIGURATION_NAV_ITEM.path}
+                title={CONFIGURATION_NAV_ITEM.label}
+                aria-label={CONFIGURATION_NAV_ITEM.label}
+              >
+                <FontAwesomeIcon icon={CONFIGURATION_NAV_ITEM.icon} />
+              </NavLink>
+            )
           )}
 
           <button
@@ -115,15 +127,31 @@ export default function AppLayout() {
             <div className="nav-group" key={group.label}>
               <p>{group.label}</p>
               {group.items.map((item) => (
-                <NavLink
-                  className={({ isActive }) => `nav-item ${isActive ? "is-active" : ""}`}
-                  to={item.path}
-                  key={item.path}
-                  title={item.label}
-                >
-                  <span><FontAwesomeIcon icon={item.icon} /></span>
-                  <strong>{item.label}</strong>
-                </NavLink>
+                item.enabled === false ? (
+                  <button
+                    aria-disabled="true"
+                    aria-label={`${item.label} (próximamente)`}
+                    className="nav-item is-disabled"
+                    key={item.path}
+                    onClick={(event) => event.preventDefault()}
+                    tabIndex={-1}
+                    title={`${item.label} (próximamente)`}
+                    type="button"
+                  >
+                    <span><FontAwesomeIcon icon={item.icon} /></span>
+                    <strong>{item.label}</strong>
+                  </button>
+                ) : (
+                  <NavLink
+                    className={({ isActive }) => `nav-item ${isActive ? "is-active" : ""}`}
+                    to={item.path}
+                    key={item.path}
+                    title={item.label}
+                  >
+                    <span><FontAwesomeIcon icon={item.icon} /></span>
+                    <strong>{item.label}</strong>
+                  </NavLink>
+                )
               ))}
             </div>
           ))}

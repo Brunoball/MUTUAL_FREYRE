@@ -61,6 +61,7 @@ export default function Toast({
     };
 
     const closeWithAction = (event) => {
+      if (persistent) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
 
@@ -76,7 +77,7 @@ export default function Toast({
       window.removeEventListener("keydown", closeWithEscape);
       document.removeEventListener("click", closeWithAction, true);
     };
-  }, [close]);
+  }, [close, persistent]);
 
   useEffect(() => {
     if (persistent || normalizedType === "cargando") return undefined;

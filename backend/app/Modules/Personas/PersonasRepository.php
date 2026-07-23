@@ -234,6 +234,7 @@ final class PersonasRepository
                  WHERE a.id_persona = :id LIMIT 1',
                 ['id' => $personId]
             ),
+            'conyuge' => $this->spouse($personId),
             'autorizados' => $this->links($personId, 'AUTORIZADO'),
             'beneficiarios' => $this->links($personId, 'BENEFICIARIO_FINAL'),
         ];
@@ -293,6 +294,46 @@ final class PersonasRepository
     {
         $statement = $this->db()->prepare('SELECT 1 FROM per_personas WHERE id_persona = :id AND activo = 1 LIMIT 1');
         $statement->execute(['id' => $personId]);
+        return (bool)$statement->fetchColumn();
+    }
+
+    public function linkablePhysicalPersonExists(int $personId): bool
+    {
+        $statement = $this->db()->prepare(
+            "SELECT 1
+             FROM per_personas p
+             INNER JOIN per_personas_fisicas pf ON pf.id_persona = p.id_persona
+             WHERE p.id_persona = :id
+               AND p.tipo_persona = 'FISICA'
+               AND p.activo = 1
+             LIMIT 1"
+        );
+        $statement->execute(['id' => $personId]);
+        return (bool)$statement->fetchColumn();
+    }
+
+    public function spouseConflictExists(int $linkedPersonId, ?int $currentPersonId): bool
+    {
+        $sql = "SELECT 1
+                FROM per_vinculos
+                WHERE tipo_vinculo = 'CONYUGE'
+                  AND activo = 1
+                  AND (id_persona_titular = :linked_holder OR id_persona_vinculada = :linked_related)";
+        $params = [
+            'linked_holder' => $linkedPersonId,
+            'linked_related' => $linkedPersonId,
+        ];
+
+        if ($currentPersonId !== null) {
+            $sql .= ' AND id_persona_titular <> :current_holder
+                      AND id_persona_vinculada <> :current_related';
+            $params['current_holder'] = $currentPersonId;
+            $params['current_related'] = $currentPersonId;
+        }
+        $sql .= ' LIMIT 1';
+
+        $statement = $this->db()->prepare($sql);
+        $statement->execute($params);
         return (bool)$statement->fetchColumn();
     }
 
@@ -600,6 +641,73 @@ final class PersonasRepository
         return (int)$this->db()->lastInsertId();
     }
 
+    public function syncSpouseLink(int $personId, ?array $spouse, int $userId): void
+    {
+        $current = $this->spouse($personId);
+        if ($spouse === null) {
+            $this->deactivateSpouseLinks($personId);
+            return;
+        }
+
+        $linkedId = (int)$spouse['id_persona_vinculada'];
+        if ($current && (int)$current['id_persona_vinculada'] === $linkedId) {
+            $statement = $this->db()->prepare(
+                "UPDATE per_vinculos
+                 SET fecha_desde = :fecha_desde,
+                     fecha_hasta = NULL,
+                     activo = 1,
+                     observaciones = :observaciones,
+                     actualizado_en = NOW()
+                 WHERE id_vinculo = :id_vinculo"
+            );
+            $statement->execute([
+                'fecha_desde' => $spouse['fecha_desde'],
+                'observaciones' => $spouse['observaciones'],
+                'id_vinculo' => (int)$current['id_vinculo'],
+            ]);
+            return;
+        }
+
+        $this->deactivateSpouseLinks($personId);
+        $statement = $this->db()->prepare(
+            "INSERT INTO per_vinculos (
+                id_persona_titular, id_persona_vinculada, tipo_vinculo,
+                porcentaje_participacion, alcance, operaciones_permitidas,
+                fecha_desde, fecha_hasta, activo, observaciones, creado_por,
+                creado_en, actualizado_en
+             ) VALUES (
+                :id_persona_titular, :id_persona_vinculada, 'CONYUGE',
+                NULL, NULL, NULL,
+                :fecha_desde, NULL, 1, :observaciones, :creado_por,
+                NOW(), NOW()
+             )"
+        );
+        $statement->execute([
+            'id_persona_titular' => $personId,
+            'id_persona_vinculada' => $linkedId,
+            'fecha_desde' => $spouse['fecha_desde'],
+            'observaciones' => $spouse['observaciones'],
+            'creado_por' => $userId,
+        ]);
+    }
+
+    private function deactivateSpouseLinks(int $personId): void
+    {
+        $statement = $this->db()->prepare(
+            "UPDATE per_vinculos
+             SET activo = 0,
+                 fecha_hasta = COALESCE(fecha_hasta, CURDATE()),
+                 actualizado_en = NOW()
+             WHERE tipo_vinculo = 'CONYUGE'
+               AND activo = 1
+               AND (id_persona_titular = :holder_id OR id_persona_vinculada = :related_id)"
+        );
+        $statement->execute([
+            'holder_id' => $personId,
+            'related_id' => $personId,
+        ]);
+    }
+
     public function replaceOperationalLinks(int $personId, array $links, int $userId): void
     {
         $this->db()->prepare(
@@ -684,6 +792,46 @@ final class PersonasRepository
                 'id' => $personId,
             ]);
         }
+    }
+
+    private function spouse(int $personId): ?array
+    {
+        $statement = $this->db()->prepare(
+            "SELECT v.id_vinculo,
+                    CASE
+                        WHEN v.id_persona_titular = :person_holder
+                            THEN v.id_persona_vinculada
+                        ELSE v.id_persona_titular
+                    END AS id_persona_vinculada,
+                    v.fecha_desde,
+                    v.fecha_hasta,
+                    v.activo,
+                    v.observaciones,
+                    otra.nombre_exhibicion AS nombre_vinculado,
+                    COALESCE(pf.dni, otra.cuit_cuil) AS documento_vinculado
+             FROM per_vinculos v
+             INNER JOIN per_personas otra
+                ON otra.id_persona = CASE
+                    WHEN v.id_persona_titular = :person_join_holder
+                        THEN v.id_persona_vinculada
+                    ELSE v.id_persona_titular
+                END
+             LEFT JOIN per_personas_fisicas pf ON pf.id_persona = otra.id_persona
+             WHERE v.tipo_vinculo = 'CONYUGE'
+               AND v.activo = 1
+               AND (v.id_persona_titular = :person_filter_holder
+                    OR v.id_persona_vinculada = :person_filter_related)
+             ORDER BY v.id_vinculo DESC
+             LIMIT 1"
+        );
+        $statement->execute([
+            'person_holder' => $personId,
+            'person_join_holder' => $personId,
+            'person_filter_holder' => $personId,
+            'person_filter_related' => $personId,
+        ]);
+        $row = $statement->fetch();
+        return $row ?: null;
     }
 
     private function links(int $personId, string $type): array

@@ -879,6 +879,21 @@
   transform: scaleX(1);
 }
 
+.entity-form-tab.has-error {
+  color: var(--entity-modal-danger);
+}
+
+.entity-form-tab.has-error::after,
+.entity-form-tab.has-error.is-active::after {
+  background: var(--entity-modal-danger);
+  transform: scaleX(1);
+}
+
+.entity-form-tab.has-error .entity-form-tab__badge {
+  background: color-mix(in srgb, var(--entity-modal-danger) 12%, white);
+  color: var(--entity-modal-danger);
+}
+
 .entity-form-tab__badge {
   min-width: 19px;
   height: 19px;
@@ -1058,6 +1073,12 @@
 .entity-field.has-error > select,
 .entity-field.has-error > textarea {
   border-color: var(--entity-modal-danger);
+  background: color-mix(in srgb, var(--entity-modal-danger) 4%, white);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--entity-modal-danger) 10%, transparent);
+}
+
+.entity-field.has-error > span {
+  color: var(--entity-modal-danger);
 }
 
 .entity-field__error {

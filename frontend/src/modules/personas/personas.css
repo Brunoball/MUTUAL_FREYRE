@@ -219,6 +219,40 @@
   gap: 13px 14px;
 }
 
+.persona-spouse-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-soft) 72%, white);
+}
+
+.persona-spouse-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.persona-spouse-panel__header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.persona-spouse-panel__header strong {
+  color: var(--entity-modal-ink);
+  font-size: 12.5px;
+  font-weight: 760;
+}
+
+.persona-spouse-panel__header small {
+  color: var(--entity-modal-text);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .persona-type-selector {
   width: fit-content;
   display: inline-flex;

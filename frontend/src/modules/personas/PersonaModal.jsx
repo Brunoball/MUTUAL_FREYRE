@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   buildPersonSections,
   catalogToOptions,
@@ -10,6 +10,7 @@ import {
   EntityTabs,
 } from "../../Global/components/TabbedForm";
 import GlobalIcon from "../../Global/components/GlobalIcon";
+import SearchableSelect from "../../Global/components/SearchableSelect";
 
 const localDateValue = (date = new Date()) => {
   const year = date.getFullYear();
@@ -31,6 +32,394 @@ const toUiLabel = (value) => {
   return normalized.replace(UI_ACRONYMS, (match) =>
     match.toLocaleUpperCase("es-AR"),
   );
+};
+
+
+const DIGIT_FIELD_LIMITS = {
+  "general.cuit_cuil": 11,
+  "general.telefono": 20,
+  "general.telefono_alternativo": 20,
+  "fisica.dni": 8,
+  "fisica.telefono_laboral": 20,
+  "financieros.cbu": 22,
+  "general.ingresos_brutos": 20,
+};
+
+const DATE_FIELDS = new Set([
+  "general.fecha_actualizacion_arca",
+  "fisica.fecha_nacimiento",
+  "conyuge.fecha_desde",
+  "juridica.fecha_constitucion",
+  "asociado.fecha_ingreso",
+  "asociado.fecha_alta_inaes",
+  "asociado.fecha_baja",
+]);
+
+const NAME_FIELDS = new Set(["fisica.nombres", "fisica.apellidos"]);
+const DECIMAL_FIELDS = new Set([
+  "financieros.ingresos_mensuales",
+  "financieros.patrimonio_estimado",
+]);
+
+const STRUCTURED_TEXT_FIELDS = new Set([
+  "general.localidad_exterior",
+  "general.actividad",
+  "fisica.profesion",
+  "fisica.empleador",
+  "fisica.lugar_trabajo",
+  "juridica.razon_social",
+  "juridica.nombre_fantasia",
+  "juridica.numero_inscripcion",
+  "juridica.autoridad_contralor",
+  "financieros.banco",
+]);
+
+const FREE_TEXT_FIELDS = new Set([
+  "general.observaciones",
+  "financieros.origen_fondos",
+  "financieros.perfil_transaccional",
+  "asociado.motivo_baja",
+  "conyuge.observaciones",
+]);
+
+const FIELD_LIMITS = {
+  "general.email": 180,
+  "general.domicilio": 220,
+  "general.localidad_exterior": 120,
+  "general.ingresos_brutos": 20,
+  "general.actividad": 180,
+  "general.observaciones": 4000,
+  "fisica.nombres": 120,
+  "fisica.apellidos": 120,
+  "fisica.profesion": 140,
+  "fisica.empleador": 180,
+  "fisica.lugar_trabajo": 220,
+  "conyuge.observaciones": 500,
+  "juridica.razon_social": 200,
+  "juridica.nombre_fantasia": 180,
+  "juridica.numero_inscripcion": 100,
+  "juridica.autoridad_contralor": 160,
+  "juridica.fecha_cierre_ejercicio": 5,
+  "financieros.origen_fondos": 500,
+  "financieros.perfil_transaccional": 500,
+  "financieros.banco": 120,
+  "financieros.alias_cbu": 80,
+  "asociado.motivo_baja": 255,
+};
+
+const upper = (value) => String(value ?? "").toLocaleUpperCase("es-AR");
+const limitForPath = (path) => {
+  if (FIELD_LIMITS[path]) return FIELD_LIMITS[path];
+  const field = path.split(".").at(-1);
+  if (field === "observaciones") return 500;
+  if (field === "alcance") return 255;
+  return null;
+};
+
+const sanitizeDecimal = (value) => {
+  const cleaned = String(value ?? "")
+    .replace(/,/g, ".")
+    .replace(/[^0-9.]/g, "");
+  const [rawInteger = "", ...decimalParts] = cleaned.split(".");
+  const integer = rawInteger.slice(0, 16);
+  const decimal = decimalParts.join("").slice(0, 2);
+  if (!decimalParts.length) return integer;
+  return `${integer || "0"}.${decimal}`;
+};
+
+const sanitizeStructuredText = (value) =>
+  upper(value).replace(/[^\p{L}\p{M}\p{N}\s.,'&°ºª#():\/+\-]/gu, "");
+
+const sanitizeFreeText = (value) =>
+  upper(value).replace(/[^\p{L}\p{M}\p{N}\s.,;:'"¿?¡!°ºª#%&@$()\[\]{}\/+_=\-]/gu, "");
+
+const sanitizeFieldValue = (path, value) => {
+  if (typeof value !== "string") return value;
+
+  if (path === "general.email") {
+    return value
+      .toLocaleLowerCase("es-AR")
+      .replace(/\s+/g, "")
+      .slice(0, FIELD_LIMITS[path]);
+  }
+
+  if (DIGIT_FIELD_LIMITS[path]) {
+    return value.replace(/\D+/g, "").slice(0, DIGIT_FIELD_LIMITS[path]);
+  }
+
+  if (NAME_FIELDS.has(path)) {
+    return upper(value)
+      .replace(/[^\p{L}\p{M}\s'-]/gu, "")
+      .slice(0, FIELD_LIMITS[path]);
+  }
+
+  if (DECIMAL_FIELDS.has(path) || path.endsWith(".porcentaje_participacion")) {
+    return sanitizeDecimal(value).slice(0, 18);
+  }
+
+  if (path === "general.domicilio") {
+    return upper(value)
+      .replace(/[^\p{L}\p{M}\p{N}\s.,'°ºª#()\/-]/gu, "")
+      .slice(0, FIELD_LIMITS[path]);
+  }
+
+  if (path === "juridica.fecha_cierre_ejercicio") {
+    const digits = value.replace(/\D+/g, "").slice(0, 4);
+    return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+  }
+
+  if (STRUCTURED_TEXT_FIELDS.has(path)) {
+    const normalized = sanitizeStructuredText(value);
+    return normalized.slice(0, limitForPath(path) || normalized.length);
+  }
+
+  if (
+    FREE_TEXT_FIELDS.has(path) ||
+    path.endsWith(".observaciones") ||
+    path.endsWith(".alcance")
+  ) {
+    const normalized = sanitizeFreeText(value);
+    return normalized.slice(0, limitForPath(path) || normalized.length);
+  }
+
+  if (path === "financieros.alias_cbu") {
+    return upper(value)
+      .replace(/[^\p{L}\p{M}\p{N}._-]/gu, "")
+      .slice(0, FIELD_LIMITS[path]);
+  }
+
+  if (
+    DATE_FIELDS.has(path) ||
+    path.endsWith(".fecha_desde") ||
+    path.endsWith(".fecha_hasta") ||
+    path.endsWith(".id_persona_vinculada") ||
+    path.includes(".id_")
+  ) {
+    return value;
+  }
+
+  const normalized = sanitizeFreeText(value);
+  const limit = limitForPath(path);
+  return limit ? normalized.slice(0, limit) : normalized;
+};
+
+const isBlank = (value) => String(value ?? "").trim() === "";
+const isFutureDate = (value) => Boolean(value) && value > localDateValue();
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+const namePattern = /^[\p{L}\p{M}\s'-]+$/u;
+const digitsPattern = /^\d+$/;
+const decimalPattern = /^\d{1,16}(?:\.\d{1,2})?$/;
+const structuredTextPattern = /^[\p{L}\p{M}\p{N}\s.,'&°ºª#():\/+\-]+$/u;
+const freeTextPattern = /^[\p{L}\p{M}\p{N}\s.,;:'"¿?¡!°ºª#%&@$()\[\]{}\/+_=\-]+$/u;
+const addressPattern = /^[\p{L}\p{M}\p{N}\s.,'°ºª#()\/-]+$/u;
+const aliasPattern = /^[\p{L}\p{M}\p{N}._-]+$/u;
+
+const validatePersonForm = (form) => {
+  const errors = {};
+  const cuit = String(form.general.cuit_cuil || "");
+
+  if (form.tipo_persona === "JURIDICA" && !cuit) {
+    errors["general.cuit_cuil"] = "El CUIT es obligatorio para una persona jurídica.";
+  } else if (cuit && cuit.length !== 11) {
+    errors["general.cuit_cuil"] = "El CUIT/CUIL debe tener 11 dígitos.";
+  }
+
+  if (form.general.email && !emailPattern.test(form.general.email)) {
+    errors["general.email"] = "Ingresá un correo electrónico válido.";
+  }
+
+  const grossIncome = String(form.general.ingresos_brutos || "");
+  if (grossIncome && !digitsPattern.test(grossIncome)) {
+    errors["general.ingresos_brutos"] = "Ingresá solamente números.";
+  }
+  if (form.general.domicilio && !addressPattern.test(form.general.domicilio)) {
+    errors["general.domicilio"] = "El domicilio solo admite letras, números y signos habituales.";
+  }
+
+  ["telefono", "telefono_alternativo"].forEach((field) => {
+    const value = String(form.general[field] || "");
+    if (value && (value.length < 6 || value.length > 20)) {
+      errors[`general.${field}`] = "Ingresá entre 6 y 20 números.";
+    }
+  });
+
+  if (isBlank(form.general.id_pais_residencia)) {
+    errors["general.id_pais_residencia"] = "Seleccioná el país de residencia.";
+  }
+  if (isFutureDate(form.general.fecha_actualizacion_arca)) {
+    errors["general.fecha_actualizacion_arca"] = "La fecha no puede ser futura.";
+  }
+
+  const structuredValues = {
+    "general.localidad_exterior": form.general.localidad_exterior,
+    "general.actividad": form.general.actividad,
+    "fisica.profesion": form.fisica.profesion,
+    "fisica.empleador": form.fisica.empleador,
+    "fisica.lugar_trabajo": form.fisica.lugar_trabajo,
+    "juridica.razon_social": form.juridica.razon_social,
+    "juridica.nombre_fantasia": form.juridica.nombre_fantasia,
+    "juridica.numero_inscripcion": form.juridica.numero_inscripcion,
+    "juridica.autoridad_contralor": form.juridica.autoridad_contralor,
+    "financieros.banco": form.financieros.banco,
+  };
+  Object.entries(structuredValues).forEach(([path, value]) => {
+    if (value && !structuredTextPattern.test(String(value))) {
+      errors[path] = "El campo contiene caracteres no permitidos.";
+    }
+  });
+
+  const freeTextValues = {
+    "general.observaciones": form.general.observaciones,
+    "financieros.origen_fondos": form.financieros.origen_fondos,
+    "financieros.perfil_transaccional": form.financieros.perfil_transaccional,
+    "asociado.motivo_baja": form.asociado.motivo_baja,
+    "conyuge.observaciones": form.conyuge.observaciones,
+  };
+  Object.entries(freeTextValues).forEach(([path, value]) => {
+    if (value && !freeTextPattern.test(String(value))) {
+      errors[path] = "El campo contiene caracteres no permitidos.";
+    }
+  });
+
+  if (form.tipo_persona === "FISICA") {
+    const names = String(form.fisica.nombres || "").trim();
+    const surnames = String(form.fisica.apellidos || "").trim();
+    const dni = String(form.fisica.dni || "");
+
+    if (!names) errors["fisica.nombres"] = "Este campo es obligatorio.";
+    else if (!namePattern.test(names)) errors["fisica.nombres"] = "Ingresá solamente letras.";
+
+    if (!surnames) errors["fisica.apellidos"] = "Este campo es obligatorio.";
+    else if (!namePattern.test(surnames)) errors["fisica.apellidos"] = "Ingresá solamente letras.";
+
+    if (dni.length < 7 || dni.length > 8) {
+      errors["fisica.dni"] = "El DNI debe tener 7 u 8 dígitos.";
+    }
+    if (isFutureDate(form.fisica.fecha_nacimiento)) {
+      errors["fisica.fecha_nacimiento"] = "La fecha de nacimiento no puede ser futura.";
+    }
+    if (isBlank(form.fisica.id_pais_nacionalidad)) {
+      errors["fisica.id_pais_nacionalidad"] = "Seleccioná la nacionalidad.";
+    }
+    const workPhone = String(form.fisica.telefono_laboral || "");
+    if (workPhone && (workPhone.length < 6 || workPhone.length > 20)) {
+      errors["fisica.telefono_laboral"] = "Ingresá entre 6 y 20 números.";
+    }
+    if (isFutureDate(form.conyuge.fecha_desde)) {
+      errors["conyuge.fecha_desde"] = "La fecha del vínculo no puede ser futura.";
+    }
+  } else {
+    if (isBlank(form.juridica.razon_social)) {
+      errors["juridica.razon_social"] = "Este campo es obligatorio.";
+    }
+    if (isFutureDate(form.juridica.fecha_constitucion)) {
+      errors["juridica.fecha_constitucion"] = "La fecha de constitución no puede ser futura.";
+    }
+    if (
+      form.juridica.fecha_cierre_ejercicio &&
+      !/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])$/.test(
+        form.juridica.fecha_cierre_ejercicio,
+      )
+    ) {
+      errors["juridica.fecha_cierre_ejercicio"] = "Usá el formato DD/MM.";
+    }
+  }
+
+  const cbu = String(form.financieros.cbu || "");
+  if (cbu && cbu.length !== 22) {
+    errors["financieros.cbu"] = "El CBU debe tener 22 dígitos.";
+  }
+  ["ingresos_mensuales", "patrimonio_estimado"].forEach((field) => {
+    const value = String(form.financieros[field] ?? "");
+    if (value !== "" && !decimalPattern.test(value)) {
+      errors[`financieros.${field}`] = "Ingresá un importe válido con hasta 2 decimales.";
+    }
+  });
+  if (form.financieros.alias_cbu && !aliasPattern.test(form.financieros.alias_cbu)) {
+    errors["financieros.alias_cbu"] = "El alias solo admite letras, números, puntos, guiones y guion bajo.";
+  }
+
+  if (form.asociado.es_asociado) {
+    if (!form.asociado.fecha_ingreso) {
+      errors["asociado.fecha_ingreso"] = "La fecha de ingreso es obligatoria.";
+    } else if (isFutureDate(form.asociado.fecha_ingreso)) {
+      errors["asociado.fecha_ingreso"] = "La fecha de ingreso no puede ser futura.";
+    }
+    if (!form.asociado.id_categoria_asociado) {
+      errors["asociado.id_categoria_asociado"] = "Seleccioná una categoría.";
+    }
+    if (!form.asociado.id_sucursal) {
+      errors["asociado.id_sucursal"] = "Seleccioná una sucursal.";
+    }
+    if (isFutureDate(form.asociado.fecha_alta_inaes)) {
+      errors["asociado.fecha_alta_inaes"] = "La fecha de alta no puede ser futura.";
+    }
+    if (form.asociado.estado === "BAJA") {
+      if (!form.asociado.fecha_baja) {
+        errors["asociado.fecha_baja"] = "Indicá la fecha de baja.";
+      } else if (
+        form.asociado.fecha_ingreso &&
+        form.asociado.fecha_baja < form.asociado.fecha_ingreso
+      ) {
+        errors["asociado.fecha_baja"] = "La baja no puede ser anterior al ingreso.";
+      }
+    }
+  }
+
+  form.autorizados.forEach((item, index) => {
+    if (!item.id_persona_vinculada) {
+      errors[`autorizados.${index}.id_persona_vinculada`] = "Seleccioná una persona registrada.";
+    }
+    if (item.alcance && !freeTextPattern.test(String(item.alcance))) {
+      errors[`autorizados.${index}.alcance`] = "El campo contiene caracteres no permitidos.";
+    }
+    if (item.observaciones && !freeTextPattern.test(String(item.observaciones))) {
+      errors[`autorizados.${index}.observaciones`] = "El campo contiene caracteres no permitidos.";
+    }
+    if (item.fecha_desde && item.fecha_hasta && item.fecha_hasta < item.fecha_desde) {
+      errors[`autorizados.${index}.fecha_hasta`] = "La fecha hasta no puede ser anterior a la fecha desde.";
+    }
+  });
+
+  let participationTotal = 0;
+  form.beneficiarios.forEach((item, index) => {
+    if (!item.id_persona_vinculada) {
+      errors[`beneficiarios.${index}.id_persona_vinculada`] = "Seleccioná una persona física registrada.";
+    }
+    const percentageText = String(item.porcentaje_participacion ?? "");
+    const percentage = Number(percentageText);
+    if (
+      !decimalPattern.test(percentageText) ||
+      !Number.isFinite(percentage) ||
+      percentage <= 0 ||
+      percentage > 100
+    ) {
+      errors[`beneficiarios.${index}.porcentaje_participacion`] = "Ingresá un porcentaje mayor a 0 y hasta 100, con hasta 2 decimales.";
+    } else {
+      participationTotal += percentage;
+    }
+    if (item.observaciones && !freeTextPattern.test(String(item.observaciones))) {
+      errors[`beneficiarios.${index}.observaciones`] = "El campo contiene caracteres no permitidos.";
+    }
+    if (item.fecha_desde && item.fecha_hasta && item.fecha_hasta < item.fecha_desde) {
+      errors[`beneficiarios.${index}.fecha_hasta`] = "La fecha hasta no puede ser anterior a la fecha desde.";
+    }
+  });
+  if (participationTotal > 100.0001) {
+    errors.beneficiarios = "La participación total no puede superar el 100%.";
+  }
+
+  return errors;
+};
+
+const tabForError = (key) => {
+  if (key === "tipo_persona" || key.startsWith("general.")) return "general";
+  if (key.startsWith("fisica.") || key.startsWith("juridica.") || key.startsWith("conyuge.")) return "specific";
+  if (key.startsWith("financieros.")) return "financial";
+  if (key.startsWith("asociado.")) return "associate";
+  if (key.startsWith("autorizados")) return "authorized";
+  if (key.startsWith("beneficiarios")) return "beneficiaries";
+  return "general";
 };
 
 const createEmptyForm = (catalogs) => ({
@@ -75,6 +464,11 @@ const createEmptyForm = (catalogs) => ({
     empleador: "",
     lugar_trabajo: "",
     telefono_laboral: "",
+  },
+  conyuge: {
+    id_persona_vinculada: "",
+    fecha_desde: "",
+    observaciones: "",
   },
   juridica: {
     razon_social: "",
@@ -124,6 +518,7 @@ const fromDetail = (detail, catalogs) => {
 
   const person = detail.persona;
   const physical = detail.fisica || {};
+  const spouse = detail.conyuge || {};
   const legal = detail.juridica || {};
   const financial = detail.financieros || {};
   const associate = detail.asociado || null;
@@ -132,7 +527,7 @@ const fromDetail = (detail, catalogs) => {
     tipo_persona: person.tipo_persona || "FISICA",
     general: {
       cuit_cuil: person.cuit_cuil || "",
-      email: person.email || "",
+      email: String(person.email || "").toLocaleLowerCase("es-AR"),
       telefono: person.telefono || "",
       telefono_alternativo: person.telefono_alternativo || "",
       domicilio: person.domicilio || "",
@@ -166,6 +561,11 @@ const fromDetail = (detail, catalogs) => {
       empleador: physical.empleador || "",
       lugar_trabajo: physical.lugar_trabajo || "",
       telefono_laboral: physical.telefono_laboral || "",
+    },
+    conyuge: {
+      id_persona_vinculada: asValue(spouse.id_persona_vinculada),
+      fecha_desde: spouse.fecha_desde || "",
+      observaciones: spouse.observaciones || "",
     },
     juridica: {
       razon_social: legal.razon_social || "",
@@ -228,6 +628,7 @@ function Field({ label, error, wide = false, children }) {
   const value = child.props.value;
   const alwaysActive =
     child.type === Select ||
+    child.type === SearchableSelect ||
     child.props.type === "date" ||
     child.props.type === "number";
   const active =
@@ -321,28 +722,59 @@ export default function PersonaModal({
   detail,
   errors,
   mode,
+  onClearError,
   onClose,
   onSave,
+  onValidationError,
   saving,
 }) {
   const [form, setForm] = useState(() => fromDetail(detail, catalogs));
   const [activeTab, setActiveTab] = useState("general");
+  const formRef = useRef(null);
   const readOnly = mode === "view";
   const existingAssociate = Boolean(detail?.asociado);
   const personId = detail?.persona?.id_persona;
+  const errorKeys = useMemo(
+    () => Object.keys(errors || {}).filter((key) => Boolean(errors?.[key])),
+    [errors],
+  );
 
   const errorFor = (key) => errors?.[key];
+  const clearError = (path) => onClearError?.(path);
   const update = (section, field, value) => {
+    const path = `${section}.${field}`;
+    const sanitizedValue = sanitizeFieldValue(path, value);
+    clearError(path);
     setForm((current) => ({
       ...current,
-      [section]: { ...current[section], [field]: value },
+      [section]: { ...current[section], [field]: sanitizedValue },
     }));
   };
 
-  const tabs = buildPersonSections(form.tipo_persona, {
-    authorized: form.autorizados.length,
-    beneficiaries: form.beneficiarios.length,
-  });
+  const tabs = useMemo(
+    () =>
+      buildPersonSections(form.tipo_persona, {
+        authorized: form.autorizados.length,
+        beneficiaries: form.beneficiarios.length,
+      }),
+    [form.tipo_persona, form.autorizados.length, form.beneficiarios.length],
+  );
+
+  useEffect(() => {
+    if (!errorKeys.length) return;
+    const nextTab = tabForError(errorKeys[0]);
+    if (tabs.some((tab) => tab.key === nextTab)) setActiveTab(nextTab);
+  }, [errorKeys, tabs]);
+
+  useEffect(() => {
+    if (!errorKeys.length) return undefined;
+    const timer = window.setTimeout(() => {
+      const field = formRef.current?.querySelector(".entity-field.has-error");
+      field?.scrollIntoView({ behavior: "smooth", block: "center" });
+      field?.querySelector("input, select, textarea, button")?.focus?.();
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [activeTab, errorKeys]);
 
   const selectedCountry = catalogs.paises.find(
     (item) => String(item.id) === form.general.id_pais_residencia,
@@ -354,14 +786,33 @@ export default function PersonaModal({
   const selectedLocality = catalogs.localidades.find(
     (item) => String(item.id) === form.general.id_localidad,
   );
-  const linkableOptions = catalogs.personas_vinculables
-    .filter((item) => String(item.id) !== String(personId || ""))
-    .map((item) => ({
-      value: String(item.id),
-      label: `${item.nombre}${item.documento ? ` · ${item.documento}` : ""}`,
-    }));
+  const linkablePeople = catalogs.personas_vinculables.filter(
+    (item) => String(item.id) !== String(personId || ""),
+  );
+  const toLinkableOption = (item) => ({
+    value: String(item.id),
+    label: `${item.nombre}${item.documento ? ` · ${item.documento}` : ""}`,
+  });
+  const linkableOptions = linkablePeople.map(toLinkableOption);
+  const physicalLinkableOptions = linkablePeople
+    .filter((item) => item.tipo_persona === "FISICA")
+    .map(toLinkableOption);
 
-  const addAuthorized = () =>
+  const updateSpouse = (field, value) => {
+    const path = `conyuge.${field}`;
+    const sanitizedValue = sanitizeFieldValue(path, value);
+    clearError(path);
+    setForm((current) => ({
+      ...current,
+      conyuge:
+        field === "id_persona_vinculada" && !sanitizedValue
+          ? { id_persona_vinculada: "", fecha_desde: "", observaciones: "" }
+          : { ...current.conyuge, [field]: sanitizedValue },
+    }));
+  };
+
+  const addAuthorized = () => {
+    clearError("autorizados");
     setForm((current) => ({
       ...current,
       autorizados: [
@@ -377,8 +828,10 @@ export default function PersonaModal({
         },
       ],
     }));
+  };
 
-  const addBeneficiary = () =>
+  const addBeneficiary = () => {
+    clearError("beneficiarios");
     setForm((current) => ({
       ...current,
       beneficiarios: [
@@ -393,20 +846,27 @@ export default function PersonaModal({
         },
       ],
     }));
+  };
 
-  const updateList = (list, index, field, value) =>
+  const updateList = (list, index, field, value) => {
+    const path = `${list}.${index}.${field}`;
+    const sanitizedValue = sanitizeFieldValue(path, value);
+    clearError(path);
     setForm((current) => ({
       ...current,
       [list]: current[list].map((item, itemIndex) =>
-        itemIndex === index ? { ...item, [field]: value } : item,
+        itemIndex === index ? { ...item, [field]: sanitizedValue } : item,
       ),
     }));
+  };
 
-  const removeList = (list, index) =>
+  const removeList = (list, index) => {
+    clearError(list);
     setForm((current) => ({
       ...current,
       [list]: current[list].filter((_, itemIndex) => itemIndex !== index),
     }));
+  };
 
   const toggleOperation = (index, operation) => {
     const current = form.autorizados[index]?.operaciones_permitidas || [];
@@ -432,11 +892,17 @@ export default function PersonaModal({
     value: tab.key,
     label: toUiLabel(tab.label),
     badge: Number.isInteger(tab.count) ? tab.count : null,
+    hasError: errorKeys.some((key) => tabForError(key) === tab.key),
   }));
 
   const submit = (event) => {
     event.preventDefault();
     if (readOnly || saving) return;
+    const validationErrors = validatePersonForm(form);
+    if (Object.keys(validationErrors).length) {
+      onValidationError?.(validationErrors);
+      return;
+    }
     onSave(form);
   };
 
@@ -454,7 +920,7 @@ export default function PersonaModal({
       title={title}
       wide
     >
-      <div className="entity-form personas-modal__form">
+      <div className="entity-form personas-modal__form" ref={formRef}>
         <EntityTabs
           ariaLabel="Secciones de la ficha"
           idPrefix="persona-tab"
@@ -483,7 +949,11 @@ export default function PersonaModal({
                     }
                     disabled={readOnly}
                     key={option.value}
-                    onClick={() =>
+                    onClick={() => {
+                      clearError("tipo_persona");
+                      clearError("fisica");
+                      clearError("juridica");
+                      clearError("beneficiarios");
                       setForm((current) => ({
                         ...current,
                         tipo_persona: option.value,
@@ -491,8 +961,8 @@ export default function PersonaModal({
                           option.value === "JURIDICA"
                             ? current.beneficiarios
                             : [],
-                      }))
-                    }
+                      }));
+                    }}
                     type="button"
                   >
                     {option.label}
@@ -508,7 +978,7 @@ export default function PersonaModal({
                   <Input
                     disabled={readOnly}
                     inputMode="numeric"
-                    maxLength={14}
+                    maxLength={11}
                     onChange={(value) => update("general", "cuit_cuil", value)}
                     value={form.general.cuit_cuil}
                   />
@@ -537,23 +1007,27 @@ export default function PersonaModal({
                     value={form.general.email}
                   />
                 </Field>
-                <Field label="Teléfono móvil">
+                <Field label="Teléfono móvil" error={errorFor("general.telefono")}>
                   <Input
                     disabled={readOnly}
+                    inputMode="numeric"
+                    maxLength={20}
                     onChange={(value) => update("general", "telefono", value)}
                     value={form.general.telefono}
                   />
                 </Field>
-                <Field label="Teléfono alternativo">
+                <Field label="Teléfono alternativo" error={errorFor("general.telefono_alternativo")}>
                   <Input
                     disabled={readOnly}
+                    inputMode="numeric"
+                    maxLength={20}
                     onChange={(value) =>
                       update("general", "telefono_alternativo", value)
                     }
                     value={form.general.telefono_alternativo}
                   />
                 </Field>
-                <Field label="Domicilio">
+                <Field label="Domicilio" error={errorFor("general.domicilio")}>
                   <Input
                     disabled={readOnly}
                     onChange={(value) => update("general", "domicilio", value)}
@@ -566,7 +1040,9 @@ export default function PersonaModal({
                 >
                   <Select
                     disabled={readOnly}
-                    onChange={(value) =>
+                    onChange={(value) => {
+                      clearError("general.id_pais_residencia");
+                      clearError("general.id_localidad");
                       setForm((current) => ({
                         ...current,
                         general: {
@@ -574,8 +1050,8 @@ export default function PersonaModal({
                           id_pais_residencia: value,
                           id_localidad: "",
                         },
-                      }))
-                    }
+                      }));
+                    }}
                     options={catalogToOptions(catalogs.paises)}
                     value={form.general.id_pais_residencia}
                   />
@@ -604,7 +1080,10 @@ export default function PersonaModal({
                 </Field>
                 {selectedCountry?.codigo !== "AR" &&
                 selectedCountry?.codigo_iso2 !== "AR" ? (
-                  <Field label="Localidad en el exterior">
+                  <Field
+                    label="Localidad en el exterior"
+                    error={errorFor("general.localidad_exterior")}
+                  >
                     <Input
                       disabled={readOnly}
                       onChange={(value) =>
@@ -627,19 +1106,25 @@ export default function PersonaModal({
                     value={form.general.id_zona_geografica}
                   />
                 </Field>
-                <Field label="Actividad">
+                <Field label="Actividad" error={errorFor("general.actividad")}>
                   <Input
                     disabled={readOnly}
                     onChange={(value) => update("general", "actividad", value)}
                     value={form.general.actividad}
                   />
                 </Field>
-                <Field label="Ingresos brutos">
+                <Field
+                  label="Ingresos brutos"
+                  error={errorFor("general.ingresos_brutos")}
+                >
                   <Input
                     disabled={readOnly}
+                    inputMode="numeric"
+                    maxLength={20}
                     onChange={(value) =>
                       update("general", "ingresos_brutos", value)
                     }
+                    pattern="[0-9]*"
                     value={form.general.ingresos_brutos}
                   />
                 </Field>
@@ -678,7 +1163,11 @@ export default function PersonaModal({
                     }
                   />
                 </div>
-                <Field label="Observaciones" wide>
+                <Field
+                  label="Observaciones"
+                  error={errorFor("general.observaciones")}
+                  wide
+                >
                   <Textarea
                     disabled={readOnly}
                     onChange={(value) =>
@@ -717,6 +1206,7 @@ export default function PersonaModal({
                   <Input
                     disabled={readOnly}
                     inputMode="numeric"
+                    maxLength={8}
                     onChange={(value) => update("fisica", "dni", value)}
                     value={form.fisica.dni}
                   />
@@ -755,6 +1245,64 @@ export default function PersonaModal({
                     value={form.fisica.estado_civil}
                   />
                 </Field>
+                <div className="persona-spouse-panel is-wide">
+                  <div className="persona-spouse-panel__header">
+                    <div>
+                      <strong>Datos del cónyuge</strong>
+                      <small>
+                        El vínculo familiar es independiente de los permisos de la pestaña Autorizados.
+                      </small>
+                    </div>
+                  </div>
+                  <div className="persona-form-grid">
+                    <Field
+                      label="Cónyuge"
+                      error={errorFor("conyuge.id_persona_vinculada")}
+                      wide
+                    >
+                      <SearchableSelect
+                        ariaLabel="Buscar cónyuge"
+                        clearLabel="SIN CÓNYUGE"
+                        disabled={readOnly}
+                        emptyMessage="NO SE ENCONTRARON PERSONAS FÍSICAS"
+                        onChange={(value) =>
+                          updateSpouse("id_persona_vinculada", value)
+                        }
+                        options={physicalLinkableOptions}
+                        placeholder="BUSCAR CÓNYUGE POR NOMBRE O DOCUMENTO..."
+                        value={form.conyuge.id_persona_vinculada}
+                      />
+                    </Field>
+                    <Field
+                      label="Vínculo desde"
+                      error={errorFor("conyuge.fecha_desde")}
+                    >
+                      <Input
+                        disabled={
+                          readOnly || !form.conyuge.id_persona_vinculada
+                        }
+                        onChange={(value) => updateSpouse("fecha_desde", value)}
+                        type="date"
+                        value={form.conyuge.fecha_desde}
+                      />
+                    </Field>
+                    <Field
+                      label="Observaciones"
+                      error={errorFor("conyuge.observaciones")}
+                      wide
+                    >
+                      <Textarea
+                        disabled={
+                          readOnly || !form.conyuge.id_persona_vinculada
+                        }
+                        onChange={(value) =>
+                          updateSpouse("observaciones", value)
+                        }
+                        value={form.conyuge.observaciones}
+                      />
+                    </Field>
+                  </div>
+                </div>
                 <Field
                   label="Nacionalidad"
                   error={errorFor("fisica.id_pais_nacionalidad")}
@@ -781,21 +1329,24 @@ export default function PersonaModal({
                     value={form.fisica.id_relacion_laboral}
                   />
                 </Field>
-                <Field label="Profesión">
+                <Field label="Profesión" error={errorFor("fisica.profesion")}>
                   <Input
                     disabled={readOnly}
                     onChange={(value) => update("fisica", "profesion", value)}
                     value={form.fisica.profesion}
                   />
                 </Field>
-                <Field label="Empleador">
+                <Field label="Empleador" error={errorFor("fisica.empleador")}>
                   <Input
                     disabled={readOnly}
                     onChange={(value) => update("fisica", "empleador", value)}
                     value={form.fisica.empleador}
                   />
                 </Field>
-                <Field label="Lugar de trabajo">
+                <Field
+                  label="Lugar de trabajo"
+                  error={errorFor("fisica.lugar_trabajo")}
+                >
                   <Input
                     disabled={readOnly}
                     onChange={(value) =>
@@ -804,9 +1355,11 @@ export default function PersonaModal({
                     value={form.fisica.lugar_trabajo}
                   />
                 </Field>
-                <Field label="Teléfono laboral">
+                <Field label="Teléfono laboral" error={errorFor("fisica.telefono_laboral")}>
                   <Input
                     disabled={readOnly}
+                    inputMode="numeric"
+                    maxLength={20}
                     onChange={(value) =>
                       update("fisica", "telefono_laboral", value)
                     }
@@ -837,7 +1390,10 @@ export default function PersonaModal({
                     value={form.juridica.razon_social}
                   />
                 </Field>
-                <Field label="Nombre de fantasía">
+                <Field
+                  label="Nombre de fantasía"
+                  error={errorFor("juridica.nombre_fantasia")}
+                >
                   <Input
                     disabled={readOnly}
                     onChange={(value) =>
@@ -872,7 +1428,10 @@ export default function PersonaModal({
                     value={form.juridica.fecha_constitucion}
                   />
                 </Field>
-                <Field label="Número de inscripción">
+                <Field
+                  label="Número de inscripción"
+                  error={errorFor("juridica.numero_inscripcion")}
+                >
                   <Input
                     disabled={readOnly}
                     onChange={(value) =>
@@ -881,7 +1440,10 @@ export default function PersonaModal({
                     value={form.juridica.numero_inscripcion}
                   />
                 </Field>
-                <Field label="Autoridad de contralor">
+                <Field
+                  label="Autoridad de contralor"
+                  error={errorFor("juridica.autoridad_contralor")}
+                >
                   <Input
                     disabled={readOnly}
                     onChange={(value) =>
@@ -921,12 +1483,12 @@ export default function PersonaModal({
                 >
                   <Input
                     disabled={readOnly}
-                    min="0"
+                    inputMode="decimal"
+                    maxLength={19}
                     onChange={(value) =>
                       update("financieros", "ingresos_mensuales", value)
                     }
-                    step="0.01"
-                    type="number"
+                    pattern="[0-9]*[.,]?[0-9]{0,2}"
                     value={form.financieros.ingresos_mensuales}
                   />
                 </Field>
@@ -936,16 +1498,16 @@ export default function PersonaModal({
                 >
                   <Input
                     disabled={readOnly}
-                    min="0"
+                    inputMode="decimal"
+                    maxLength={19}
                     onChange={(value) =>
                       update("financieros", "patrimonio_estimado", value)
                     }
-                    step="0.01"
-                    type="number"
+                    pattern="[0-9]*[.,]?[0-9]{0,2}"
                     value={form.financieros.patrimonio_estimado}
                   />
                 </Field>
-                <Field label="Banco">
+                <Field label="Banco" error={errorFor("financieros.banco")}>
                   <Input
                     disabled={readOnly}
                     onChange={(value) => update("financieros", "banco", value)}
@@ -961,7 +1523,7 @@ export default function PersonaModal({
                     value={form.financieros.cbu}
                   />
                 </Field>
-                <Field label="Alias CBU">
+                <Field label="Alias CBU" error={errorFor("financieros.alias_cbu")}>
                   <Input
                     disabled={readOnly}
                     onChange={(value) =>
@@ -970,7 +1532,11 @@ export default function PersonaModal({
                     value={form.financieros.alias_cbu}
                   />
                 </Field>
-                <Field label="Origen de fondos" wide>
+                <Field
+                  label="Origen de fondos"
+                  error={errorFor("financieros.origen_fondos")}
+                  wide
+                >
                   <Textarea
                     disabled={readOnly}
                     onChange={(value) =>
@@ -979,7 +1545,11 @@ export default function PersonaModal({
                     value={form.financieros.origen_fondos}
                   />
                 </Field>
-                <Field label="Perfil transaccional" wide>
+                <Field
+                  label="Perfil transaccional"
+                  error={errorFor("financieros.perfil_transaccional")}
+                  wide
+                >
                   <Textarea
                     disabled={readOnly}
                     onChange={(value) =>
@@ -1109,7 +1679,10 @@ export default function PersonaModal({
                             value={form.asociado.fecha_baja}
                           />
                         </Field>
-                        <Field label="Motivo de baja">
+                        <Field
+                          label="Motivo de baja"
+                          error={errorFor("asociado.motivo_baja")}
+                        >
                           <Input
                             disabled={readOnly}
                             onChange={(value) =>
@@ -1183,7 +1756,9 @@ export default function PersonaModal({
                         )}
                         wide
                       >
-                        <Select
+                        <SearchableSelect
+                          ariaLabel={`Buscar persona autorizada ${index + 1}`}
+                          clearLabel="SIN PERSONA SELECCIONADA"
                           disabled={readOnly}
                           onChange={(value) =>
                             updateList(
@@ -1194,6 +1769,7 @@ export default function PersonaModal({
                             )
                           }
                           options={linkableOptions}
+                          placeholder="BUSCAR POR NOMBRE O DOCUMENTO..."
                           value={item.id_persona_vinculada}
                         />
                       </Field>
@@ -1233,7 +1809,11 @@ export default function PersonaModal({
                           value={item.fecha_hasta}
                         />
                       </Field>
-                      <Field label="Alcance" wide>
+                      <Field
+                        label="Alcance"
+                        error={errorFor(`autorizados.${index}.alcance`)}
+                        wide
+                      >
                         <Input
                           disabled={readOnly}
                           onChange={(value) =>
@@ -1259,7 +1839,11 @@ export default function PersonaModal({
                           ),
                         )}
                       </div>
-                      <Field label="Observaciones" wide>
+                      <Field
+                        label="Observaciones"
+                        error={errorFor(`autorizados.${index}.observaciones`)}
+                        wide
+                      >
                         <Textarea
                           disabled={readOnly}
                           onChange={(value) =>
@@ -1347,8 +1931,11 @@ export default function PersonaModal({
                         )}
                         wide
                       >
-                        <Select
+                        <SearchableSelect
+                          ariaLabel={`Buscar beneficiario final ${index + 1}`}
+                          clearLabel="SIN PERSONA SELECCIONADA"
                           disabled={readOnly}
+                          emptyMessage="NO SE ENCONTRARON PERSONAS FÍSICAS"
                           onChange={(value) =>
                             updateList(
                               "beneficiarios",
@@ -1357,7 +1944,8 @@ export default function PersonaModal({
                               value,
                             )
                           }
-                          options={linkableOptions}
+                          options={physicalLinkableOptions}
+                          placeholder="BUSCAR PERSONA FÍSICA POR NOMBRE O DOCUMENTO..."
                           value={item.id_persona_vinculada}
                         />
                       </Field>
@@ -1369,8 +1957,8 @@ export default function PersonaModal({
                       >
                         <Input
                           disabled={readOnly}
-                          max="100"
-                          min="0.01"
+                          inputMode="decimal"
+                          maxLength={6}
                           onChange={(value) =>
                             updateList(
                               "beneficiarios",
@@ -1379,8 +1967,7 @@ export default function PersonaModal({
                               value,
                             )
                           }
-                          step="0.01"
-                          type="number"
+                          pattern="[0-9]*[.,]?[0-9]{0,2}"
                           value={item.porcentaje_participacion}
                         />
                       </Field>
@@ -1420,7 +2007,11 @@ export default function PersonaModal({
                           value={item.fecha_hasta}
                         />
                       </Field>
-                      <Field label="Observaciones" wide>
+                      <Field
+                        label="Observaciones"
+                        error={errorFor(`beneficiarios.${index}.observaciones`)}
+                        wide
+                      >
                         <Textarea
                           disabled={readOnly}
                           onChange={(value) =>
