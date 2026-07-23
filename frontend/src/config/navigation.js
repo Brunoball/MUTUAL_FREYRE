@@ -17,7 +17,7 @@ export const CONFIGURATION_NAV_ITEM = {
   path: "/configuracion",
   icon: faGear,
   permission: "configuracion.view",
-  enabled: false,
+  enabled: true,
 };
 
 export const NAVIGATION_GROUPS = [

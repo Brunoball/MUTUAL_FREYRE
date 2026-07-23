@@ -60,6 +60,12 @@ export function AuthProvider({ children }) {
     }
   }, [clear]);
 
+  const refresh = useCallback(async () => {
+    const data = await consultarSesionActual();
+    persist(data);
+    return data;
+  }, [persist]);
+
   const can = useCallback((permission) => {
     if (!permission) return true;
     const permissions = session?.usuario?.permisos || [];
@@ -73,8 +79,9 @@ export function AuthProvider({ children }) {
     isAuthenticated: status === "authenticated",
     login,
     logout,
+    refresh,
     can,
-  }), [session, status, login, logout, can]);
+  }), [session, status, login, logout, refresh, can]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
