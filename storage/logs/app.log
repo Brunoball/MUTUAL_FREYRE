@@ -136,3 +136,67 @@
 #4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), 'be9ec78f9987afa...')
 #5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
 #6 {main}
+[2026-07-23T13:48:01-03:00] [16c31f6e6b1fecc541c1642a] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.fecha_baja' in 'field list'
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasRepository.php(98): PDO->prepare('SELECT\r\n       ...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasService.php(26): App\Modules\Personas\PersonasRepository->list(Array)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasController.php(16): App\Modules\Personas\PersonasService->index(Array)
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Personas\PersonasController->index(Object(App\Core\Request), Array, '16c31f6e6b1fecc...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '16c31f6e6b1fecc...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-23T13:55:13-03:00] [b9bb81ddcdcf121af58fd7dc] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.fecha_baja' in 'field list'
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasRepository.php(98): PDO->prepare('SELECT\r\n       ...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasService.php(26): App\Modules\Personas\PersonasRepository->list(Array)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasController.php(16): App\Modules\Personas\PersonasService->index(Array)
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Personas\PersonasController->index(Object(App\Core\Request), Array, 'b9bb81ddcdcf121...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), 'b9bb81ddcdcf121...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-23T13:55:14-03:00] [6a4edd027e5c666b8bbefa2c] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.fecha_baja' in 'field list'
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasRepository.php(98): PDO->prepare('SELECT\r\n       ...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasService.php(26): App\Modules\Personas\PersonasRepository->list(Array)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasController.php(16): App\Modules\Personas\PersonasService->index(Array)
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Personas\PersonasController->index(Object(App\Core\Request), Array, '6a4edd027e5c666...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '6a4edd027e5c666...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-23T14:01:08-03:00] [35a4e24cbf35381cf96a4a7e] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.fecha_baja' in 'field list'
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasRepository.php(98): PDO->prepare('SELECT\r\n       ...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasService.php(26): App\Modules\Personas\PersonasRepository->list(Array)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasController.php(16): App\Modules\Personas\PersonasService->index(Array)
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Personas\PersonasController->index(Object(App\Core\Request), Array, '35a4e24cbf35381...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '35a4e24cbf35381...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-23T14:01:09-03:00] [c57b93eceebc44623e5b4bb1] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.fecha_baja' in 'field list'
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasRepository.php(98): PDO->prepare('SELECT\r\n       ...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasService.php(26): App\Modules\Personas\PersonasRepository->list(Array)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasController.php(16): App\Modules\Personas\PersonasService->index(Array)
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Personas\PersonasController->index(Object(App\Core\Request), Array, 'c57b93eceebc446...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), 'c57b93eceebc446...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-23T14:01:25-03:00] [4e3c20dd337bda193161f206] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.fecha_baja' in 'field list'
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasRepository.php(98): PDO->prepare('SELECT\r\n       ...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasService.php(26): App\Modules\Personas\PersonasRepository->list(Array)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasController.php(16): App\Modules\Personas\PersonasService->index(Array)
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Personas\PersonasController->index(Object(App\Core\Request), Array, '4e3c20dd337bda1...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '4e3c20dd337bda1...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-23T14:02:04-03:00] [25010d6eed094c0eb50fd0bc] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.fecha_baja' in 'field list'
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasRepository.php(98): PDO->prepare('SELECT\r\n       ...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasService.php(26): App\Modules\Personas\PersonasRepository->list(Array)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasController.php(16): App\Modules\Personas\PersonasService->index(Array)
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Personas\PersonasController->index(Object(App\Core\Request), Array, '25010d6eed094c0...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '25010d6eed094c0...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-23T14:16:37-03:00] [773cee34cec076129e93d002] SQLSTATE[42S22]: Column not found: 1054 Unknown column 'p.fecha_baja' in 'field list'
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasRepository.php(98): PDO->prepare('SELECT\r\n       ...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasService.php(26): App\Modules\Personas\PersonasRepository->list(Array)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Personas\PersonasController.php(16): App\Modules\Personas\PersonasService->index(Array)
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Personas\PersonasController->index(Object(App\Core\Request), Array, '773cee34cec0761...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '773cee34cec0761...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}

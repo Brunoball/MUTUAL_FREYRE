@@ -134,14 +134,16 @@
 }
 
 .persona-action-button {
-  width: 31px;
-  height: 31px;
+  width: 26px;
+  height: 24px;
   display: inline-grid;
-  flex: 0 0 31px;
+  min-width: 26px;
+  min-height: 24px;
+  flex: 0 0 26px;
   place-items: center;
   padding: 0;
   border: 1px solid color-mix(in srgb, var(--navy-900) 14%, white);
-  border-radius: 9px;
+  border-radius: 8px;
   background: white;
   color: color-mix(in srgb, var(--navy-900) 72%, white);
   cursor: pointer;
@@ -174,14 +176,14 @@
   background: color-mix(in srgb, var(--global-ui-action) 7%, white);
 }
 
-.persona-action-button.is-danger {
-  border-color: color-mix(in srgb, var(--global-ui-danger) 30%, white);
-  color: var(--global-ui-danger);
+.persona-action-button.is-warning {
+  color: color-mix(in srgb, var(--navy-900) 76%, black);
 }
 
-.persona-action-button.is-danger:hover {
-  border-color: color-mix(in srgb, var(--global-ui-danger) 48%, white);
-  background: color-mix(in srgb, var(--global-ui-danger) 8%, white);
+.persona-action-button.is-warning:hover {
+  border-color: color-mix(in srgb, var(--gold-500) 34%, white);
+  background: color-mix(in srgb, var(--gold-500) 9%, white);
+  color: color-mix(in srgb, var(--gold-500) 70%, var(--navy-900));
 }
 
 .persona-action-button.is-success {
@@ -452,100 +454,49 @@
   font-weight: 700;
 }
 
-/* Confirmación de baja/reactivación, sin cuadros nativos del navegador. */
-.persona-state-modal.entity-modal {
-  width: min(610px, 100%);
+/* Contenido específico de Personas dentro del modal global de baja. */
+.persona-state-global-modal {
+  width: min(690px, 100%);
 }
 
-.persona-state-confirm {
-  display: grid;
-  justify-items: center;
-  gap: 13px;
-  text-align: center;
-}
-
-.persona-state-confirm__icon {
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--global-ui-success) 10%, white);
-  color: var(--global-ui-success);
-}
-
-.persona-state-confirm.is-danger .persona-state-confirm__icon {
-  background: color-mix(in srgb, var(--global-ui-danger) 9%, white);
-  color: var(--global-ui-danger);
-}
-
-.persona-state-confirm > p {
-  max-width: 420px;
-  margin: 0;
-  color: var(--entity-modal-text);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.persona-state-confirm__details {
+.persona-state-extra {
   width: 100%;
-  margin: 0;
-  overflow: hidden;
-  border: 1px solid var(--entity-modal-border);
-  border-radius: 12px;
-  background: white;
-}
-
-.persona-state-confirm__details > div {
   display: grid;
-  grid-template-columns: 125px minmax(0, 1fr);
-  gap: 12px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--entity-modal-border);
+  gap: 10px;
   text-align: left;
 }
 
-.persona-state-confirm__details > div:last-child {
-  border-bottom: 0;
-}
-
-.persona-state-confirm__details dt {
-  color: var(--entity-modal-text);
-  font-size: 11px;
-  font-weight: 650;
-}
-
-.persona-state-confirm__details dd {
-  min-width: 0;
-  margin: 0;
-  overflow: hidden;
-  color: var(--entity-modal-ink);
+.persona-state-date {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  color: var(--global-ui-muted);
   font-size: 12px;
-  font-weight: 680;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 750;
 }
 
-.persona-state-confirm__fields {
+.persona-state-date input {
   width: 100%;
-  display: grid;
-  grid-template-columns: minmax(165px, 0.58fr) minmax(0, 1.42fr);
-  align-items: stretch;
-  gap: 12px;
-  text-align: left;
+  height: 42px;
+  padding: 0 11px;
+  outline: 0;
+  border: 1px solid
+    color-mix(in srgb, var(--navy-900) 16%, var(--global-ui-border));
+  border-radius: 11px;
+  background: white;
+  color: var(--global-ui-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color var(--global-ui-transition),
+    box-shadow var(--global-ui-transition);
 }
 
-.persona-state-confirm__fields .entity-field {
-  width: 100%;
-  margin: 0;
-}
-
-.persona-state-confirm__fields .entity-field.is-textarea {
-  min-height: 96px;
-}
-
-.persona-state-confirm__fields .entity-field input[type="date"] {
-  min-height: 58px;
+.persona-state-date input:focus {
+  border-color: var(--global-ui-action);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--global-ui-action) 13%, transparent);
 }
 
 @media (max-width: 1280px) {
@@ -593,22 +544,9 @@
   .persona-repeater__actions .global-button {
     width: 100%;
   }
-
-  .persona-state-confirm__details > div {
-    grid-template-columns: 1fr;
-    gap: 3px;
-  }
-
-  .persona-state-confirm__fields {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Control de vínculos antes de una baja: informa el impacto y exige confirmación. */
-.persona-state-modal.entity-modal {
-  width: min(690px, 100%);
-}
-
 .persona-link-impact {
   width: 100%;
   display: grid;

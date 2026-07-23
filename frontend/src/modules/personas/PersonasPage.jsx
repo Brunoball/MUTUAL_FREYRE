@@ -7,10 +7,11 @@ import {
 } from "../../config/globalCatalogs";
 import { MODULE_CATALOG } from "../../config/moduleCatalog";
 import GlobalDivTable from "../../Global/components/GlobalDivTable";
-import CrudModal from "../../Global/components/CrudModal";
+import GlobalActionIcon from "../../Global/components/GlobalActionIcon";
 import GlobalIcon from "../../Global/components/GlobalIcon";
 import ModuleFeedback from "../../Global/components/ModuleFeedback";
 import { ModulePage } from "../../Global/components/ModulePage";
+import ModalEliminarGlobal from "../../Global/Modales/ModalEliminarGlobal";
 
 import PersonaModal from "./PersonaModal";
 import {
@@ -99,7 +100,6 @@ export default function PersonasPage() {
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [stateModal, setStateModal] = useState(null);
-  const [stateReason, setStateReason] = useState("");
   const [stateDate, setStateDate] = useState(() => localDateValue());
   const [stateImpact, setStateImpact] = useState(EMPTY_LINK_IMPACT);
   const [stateImpactLoading, setStateImpactLoading] = useState(false);
@@ -239,7 +239,6 @@ export default function PersonasPage() {
   };
 
   const openStateModal = async (item) => {
-    setStateReason("");
     setStateDate(localDateValue());
     setStateImpact(EMPTY_LINK_IMPACT);
     setStateImpactConfirmed(false);
@@ -274,47 +273,32 @@ export default function PersonasPage() {
   };
 
   const closeStateModal = () => {
-    if (changingStatus) return;
     stateImpactRequestRef.current += 1;
     setStateModal(null);
-    setStateReason("");
     setStateDate(localDateValue());
     setStateImpact(EMPTY_LINK_IMPACT);
     setStateImpactConfirmed(false);
     setStateImpactLoading(false);
   };
 
-  const confirmStatusChange = async (event) => {
-    event.preventDefault();
+  const confirmStatusChange = async ({ motivo = "" } = {}) => {
     if (!stateModal || changingStatus) return;
 
     const currentlyActive = isTrue(stateModal.activo);
-    if (currentlyActive && !stateReason.trim()) {
-      setFeedback({ type: "warning", message: "Indicá el motivo de la baja." });
-      return;
-    }
     if (currentlyActive && !stateDate) {
-      setFeedback({ type: "warning", message: "Indicá la fecha de la baja." });
-      return;
+      throw new Error("Indicá la fecha de la baja.");
     }
     if (currentlyActive && stateDate > localDateValue()) {
-      setFeedback({
-        type: "warning",
-        message: "La fecha de baja no puede ser posterior al día de hoy.",
-      });
-      return;
+      throw new Error("La fecha de baja no puede ser posterior al día de hoy.");
     }
     if (
       currentlyActive &&
       Number(stateImpact.total || 0) > 0 &&
       !stateImpactConfirmed
     ) {
-      setFeedback({
-        type: "warning",
-        message:
-          "Confirmá que revisaste los vínculos activos antes de continuar.",
-      });
-      return;
+      throw new Error(
+        "Confirmá que revisaste los vínculos activos antes de continuar.",
+      );
     }
 
     setChangingStatus(true);
@@ -322,21 +306,10 @@ export default function PersonasPage() {
       await cambiarEstadoPersona(
         stateModal.id_persona,
         !currentlyActive,
-        stateReason.trim(),
+        motivo.trim(),
         currentlyActive ? stateDate : null,
         currentlyActive && stateImpactConfirmed,
       );
-      setFeedback({
-        type: "success",
-        message: currentlyActive
-          ? "Persona dada de baja correctamente."
-          : "Persona reactivada correctamente.",
-      });
-      setStateModal(null);
-      setStateReason("");
-      setStateDate(localDateValue());
-      setStateImpact(EMPTY_LINK_IMPACT);
-      setStateImpactConfirmed(false);
       await Promise.all([load({ query: search }), loadCatalogs()]);
     } catch (error) {
       if (error?.code === "ACTIVE_LINKS_REQUIRE_CONFIRMATION") {
@@ -354,10 +327,7 @@ export default function PersonasPage() {
           // Se mantiene el error original de concurrencia.
         }
       }
-      setFeedback({
-        type: error?.code === "ACTIVE_LINKS_REQUIRE_CONFIRMATION" ? "warning" : "error",
-        message: error?.message || "No se pudo actualizar el estado.",
-      });
+      throw new Error(error?.message || "No se pudo actualizar el estado.");
     } finally {
       setChangingStatus(false);
     }
@@ -569,7 +539,7 @@ export default function PersonasPage() {
                       title="Ver información"
                       type="button"
                     >
-                      <GlobalIcon name="info" size={16} />
+                      <GlobalActionIcon name="eye" size={12} />
                     </button>
                     {canManage ? (
                       <>
@@ -580,7 +550,7 @@ export default function PersonasPage() {
                           title="Editar ficha"
                           type="button"
                         >
-                          <GlobalIcon name="edit" size={16} />
+                          <GlobalActionIcon name="edit" size={12} />
                         </button>
                         <button
                           aria-label={
@@ -589,15 +559,15 @@ export default function PersonasPage() {
                               : `Reactivar a ${item.nombre_exhibicion}`
                           }
                           className={`persona-action-button ${
-                            active ? "is-danger" : "is-success"
+                            active ? "is-warning" : "is-success"
                           }`}
                           onClick={() => openStateModal(item)}
                           title={active ? "Dar de baja" : "Reactivar"}
                           type="button"
                         >
-                          <GlobalIcon
-                            name={active ? "trash" : "enable"}
-                            size={16}
+                          <GlobalActionIcon
+                            name={active ? "userSlash" : "userCheck"}
+                            size={12}
                           />
                         </button>
                       </>
@@ -631,145 +601,35 @@ export default function PersonasPage() {
         />
       ) : null}
 
-      <CrudModal
-        danger={isTrue(stateModal?.activo)}
-        modalClassName="persona-state-modal"
-        onClose={closeStateModal}
-        onSubmit={confirmStatusChange}
-        open={Boolean(stateModal)}
-        saving={changingStatus}
-        savingLabel={
-          isTrue(stateModal?.activo) ? "Dando de baja..." : "Reactivando..."
-        }
-        submitDisabled={
+      <ModalEliminarGlobal
+        confirmDisabled={
           isTrue(stateModal?.activo) &&
           (stateImpactLoading ||
-            !stateReason.trim() ||
             !stateDate ||
             stateDate > localDateValue() ||
             (Number(stateImpact.total || 0) > 0 && !stateImpactConfirmed))
         }
-        submitLabel={isTrue(stateModal?.activo) ? "Dar de baja" : "Reactivar"}
-        subtitle={
-          isTrue(stateModal?.activo)
-            ? "La persona dejará de figurar como activa. Sus datos se conservarán y los vínculos activos se cerrarán sin eliminarse."
-            : "La persona volverá a estar disponible para nuevas operaciones."
-        }
-        title={
-          isTrue(stateModal?.activo)
-            ? "Dar de baja a la persona"
-            : "Reactivar persona"
-        }
-      >
-        <div
-          className={`persona-state-confirm ${isTrue(stateModal?.activo) ? "is-danger" : "is-success"}`}
-        >
-          <span className="persona-state-confirm__icon">
-            <GlobalIcon
-              name={isTrue(stateModal?.activo) ? "warning" : "check"}
-              size={24}
-            />
-          </span>
-          <p>
-            {isTrue(stateModal?.activo)
-              ? "Confirmá la baja e indicá el motivo para dejar registro de la operación."
-              : "Confirmá que querés reactivar este registro."}
-          </p>
-          <dl className="persona-state-confirm__details">
-            <div>
-              <dt>Persona</dt>
-              <dd>{stateModal?.nombre_exhibicion || "—"}</dd>
-            </div>
-            <div>
-              <dt>Documento</dt>
-              <dd>{stateModal?.dni || stateModal?.cuit_cuil || "—"}</dd>
-            </div>
-            <div>
-              <dt>Estado actual</dt>
-              <dd>{isTrue(stateModal?.activo) ? "ACTIVA" : "BAJA"}</dd>
-            </div>
-          </dl>
-          {isTrue(stateModal?.activo) ? (
-            <div
-              className={`persona-link-impact ${
-                stateImpactLoading
-                  ? "is-loading"
-                  : Number(stateImpact.total || 0) > 0
-                    ? "has-links"
-                    : "is-clear"
-              }`}
-            >
-              {stateImpactLoading ? (
-                <div className="persona-link-impact__status">
-                  <GlobalIcon className="is-spinning" name="loader" size={19} />
-                  <div>
-                    <strong>Verificando vínculos activos...</strong>
-                    <span>No se habilitará la baja hasta finalizar el control.</span>
-                  </div>
-                </div>
-              ) : Number(stateImpact.total || 0) > 0 ? (
-                <>
-                  <div className="persona-link-impact__status">
-                    <GlobalIcon name="warning" size={20} />
-                    <div>
-                      <strong>
-                        {Number(stateImpact.total || 0) === 1
-                          ? "Esta persona tiene 1 vínculo activo"
-                          : `Esta persona tiene ${stateImpact.total} vínculos activos`}
-                      </strong>
-                      <span>
-                        Al confirmar la baja, se marcarán como inactivos con la misma
-                        fecha. No se eliminarán los registros.
-                      </span>
-                    </div>
-                  </div>
-                  <div className="persona-link-impact__summary">
-                    <span>Como titular: {stateImpact.como_titular || 0}</span>
-                    <span>Como vinculada: {stateImpact.como_vinculada || 0}</span>
-                  </div>
-                  <ul className="persona-link-impact__list">
-                    {stateImpact.items.map((link) => (
-                      <li key={`${link.id_vinculo}-${link.rol_persona}`}>
-                        <div>
-                          <strong>{link.nombre_otra_persona || "PERSONA SIN NOMBRE"}</strong>
-                          <span>
-                            {link.documento_otra_persona || "SIN DOCUMENTO"}
-                          </span>
-                        </div>
-                        <small>
-                          {linkTypeLabel(link.tipo_vinculo)} · ROL DE ESTA PERSONA: {link.rol_persona}
-                        </small>
-                      </li>
-                    ))}
-                  </ul>
-                  <label className="persona-link-impact__confirmation">
-                    <input
-                      checked={stateImpactConfirmed}
-                      onChange={(event) =>
-                        setStateImpactConfirmed(event.target.checked)
-                      }
-                      type="checkbox"
-                    />
-                    <span>
-                      Revisé los vínculos y confirmo que deben cerrarse junto con la
-                      baja de la persona.
-                    </span>
-                  </label>
-                </>
-              ) : (
-                <div className="persona-link-impact__status">
-                  <GlobalIcon name="check" size={20} />
-                  <div>
-                    <strong>Sin vínculos activos</strong>
-                    <span>La baja no dejará autorizaciones o beneficiarios vigentes.</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : null}
-          {isTrue(stateModal?.activo) ? (
-            <div className="persona-state-confirm__fields">
-              <label className="entity-field is-active">
+        confirmLabel={isTrue(stateModal?.activo) ? "Dar de baja" : "Reactivar"}
+        details={[
+          {
+            label: "Persona",
+            value: stateModal?.nombre_exhibicion || "—",
+          },
+          {
+            label: "Documento",
+            value: stateModal?.dni || stateModal?.cuit_cuil || "—",
+          },
+          {
+            label: "Estado actual",
+            value: isTrue(stateModal?.activo) ? "ACTIVA" : "BAJA",
+          },
+        ]}
+        errorMessage="No se pudo actualizar el estado de la persona."
+        extraContent={
+          isTrue(stateModal?.activo) ? (
+            <div className="persona-state-extra">
+              <label className="persona-state-date">
+                <span>Fecha de baja *</span>
                 <input
                   max={localDateValue()}
                   onClick={(event) => {
@@ -783,25 +643,145 @@ export default function PersonasPage() {
                   type="date"
                   value={stateDate}
                 />
-                <span>Fecha de baja *</span>
               </label>
-              <label
-                className={`entity-field is-textarea ${stateReason ? "is-active" : ""}`.trim()}
+
+              <div
+                className={`persona-link-impact ${
+                  stateImpactLoading
+                    ? "is-loading"
+                    : Number(stateImpact.total || 0) > 0
+                      ? "has-links"
+                      : "is-clear"
+                }`}
               >
-                <textarea
-                  autoFocus
-                  maxLength={255}
-                  onChange={(event) => setStateReason(event.target.value)}
-                  placeholder=" "
-                  rows="3"
-                  value={stateReason}
-                />
-                <span>Motivo de baja *</span>
-              </label>
+                {stateImpactLoading ? (
+                  <div className="persona-link-impact__status">
+                    <GlobalIcon className="is-spinning" name="loader" size={19} />
+                    <div>
+                      <strong>Verificando vínculos activos...</strong>
+                      <span>
+                        No se habilitará la baja hasta finalizar el control.
+                      </span>
+                    </div>
+                  </div>
+                ) : Number(stateImpact.total || 0) > 0 ? (
+                  <>
+                    <div className="persona-link-impact__status">
+                      <GlobalIcon name="warning" size={20} />
+                      <div>
+                        <strong>
+                          {Number(stateImpact.total || 0) === 1
+                            ? "Esta persona tiene 1 vínculo activo"
+                            : `Esta persona tiene ${stateImpact.total} vínculos activos`}
+                        </strong>
+                        <span>
+                          Al confirmar la baja, se marcarán como inactivos con la
+                          misma fecha. No se eliminarán los registros.
+                        </span>
+                      </div>
+                    </div>
+                    <div className="persona-link-impact__summary">
+                      <span>Como titular: {stateImpact.como_titular || 0}</span>
+                      <span>
+                        Como vinculada: {stateImpact.como_vinculada || 0}
+                      </span>
+                    </div>
+                    <ul className="persona-link-impact__list">
+                      {stateImpact.items.map((link) => (
+                        <li key={`${link.id_vinculo}-${link.rol_persona}`}>
+                          <div>
+                            <strong>
+                              {link.nombre_otra_persona || "PERSONA SIN NOMBRE"}
+                            </strong>
+                            <span>
+                              {link.documento_otra_persona || "SIN DOCUMENTO"}
+                            </span>
+                          </div>
+                          <small>
+                            {linkTypeLabel(link.tipo_vinculo)} · ROL DE ESTA
+                            PERSONA: {link.rol_persona}
+                          </small>
+                        </li>
+                      ))}
+                    </ul>
+                    <label className="persona-link-impact__confirmation">
+                      <input
+                        checked={stateImpactConfirmed}
+                        onChange={(event) =>
+                          setStateImpactConfirmed(event.target.checked)
+                        }
+                        type="checkbox"
+                      />
+                      <span>
+                        Revisé los vínculos y confirmo que deben cerrarse junto
+                        con la baja de la persona.
+                      </span>
+                    </label>
+                  </>
+                ) : (
+                  <div className="persona-link-impact__status">
+                    <GlobalIcon name="check" size={20} />
+                    <div>
+                      <strong>Sin vínculos activos</strong>
+                      <span>
+                        La baja no dejará autorizaciones o beneficiarios vigentes.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          ) : null}
-        </div>
-      </CrudModal>
+          ) : null
+        }
+        loading={changingStatus}
+        loadingLabel={
+          isTrue(stateModal?.activo) ? "Dando de baja..." : "Reactivando..."
+        }
+        loadingMessage={
+          isTrue(stateModal?.activo)
+            ? "Dando de baja a la persona…"
+            : "Reactivando a la persona…"
+        }
+        message={
+          isTrue(stateModal?.activo)
+            ? "La persona dejará de figurar como activa. Sus datos se conservarán y los vínculos activos se cerrarán sin eliminarse."
+            : "La persona volverá a estar disponible para nuevas operaciones."
+        }
+        modalClassName="persona-state-global-modal"
+        onConfirm={confirmStatusChange}
+        onClose={closeStateModal}
+        onToast={(typeValue, messageValue, durationValue) =>
+          setFeedback({
+            duration: durationValue,
+            message: messageValue,
+            type:
+              typeValue === "exito"
+                ? "success"
+                : typeValue === "advertencia"
+                  ? "warning"
+                  : typeValue === "cargando"
+                    ? "loading"
+                    : typeValue,
+          })
+        }
+        open={Boolean(stateModal)}
+        operacion={isTrue(stateModal?.activo) ? "baja" : "alta"}
+        reasonLabel="Motivo de baja *"
+        reasonPlaceholder="INDICÁ EL MOTIVO DE LA BAJA..."
+        reasonRequired={isTrue(stateModal?.activo)}
+        row={stateModal}
+        showReason={isTrue(stateModal?.activo)}
+        successMessage={
+          isTrue(stateModal?.activo)
+            ? "Persona dada de baja correctamente."
+            : "Persona reactivada correctamente."
+        }
+        title={
+          isTrue(stateModal?.activo)
+            ? "Dar de baja a la persona"
+            : "Reactivar persona"
+        }
+      />
     </>
   );
 }
