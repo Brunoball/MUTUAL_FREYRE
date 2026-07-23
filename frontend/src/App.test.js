@@ -1,20 +1,20 @@
 import { render, screen } from "@testing-library/react";
 import App from "./app/App";
 import { AuthProvider } from "./app/AuthProvider";
-import { currentSessionRequest } from "./modules/auth/auth.api";
+import { consultarSesionActual } from "./modules/login/inicioSesion.api";
 
-jest.mock("./modules/auth/auth.api", () => ({
-  currentSessionRequest: jest.fn(),
-  loginRequest: jest.fn(),
-  logoutRequest: jest.fn(() => Promise.resolve()),
+jest.mock("./modules/login/inicioSesion.api", () => ({
+  consultarSesionActual: jest.fn(),
+  solicitarInicioSesion: jest.fn(),
+  solicitarCierreSesion: jest.fn(() => Promise.resolve()),
 }));
 
 beforeEach(() => {
   sessionStorage.clear();
   localStorage.clear();
 
-  currentSessionRequest.mockReset();
-  currentSessionRequest.mockRejectedValue(
+  consultarSesionActual.mockReset();
+  consultarSesionActual.mockRejectedValue(
     Object.assign(new Error("Sin sesión"), {
       status: 401,
     })

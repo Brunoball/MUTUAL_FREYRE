@@ -1,0 +1,18 @@
+.personas-global-grid { grid-template-columns: minmax(0,1.45fr) minmax(0,.72fr) minmax(0,1.08fr) minmax(0,1.1fr) minmax(0,.72fr) minmax(0,.68fr) minmax(0,.62fr) minmax(0,.7fr); width: 100%; min-width: 0; }
+.personas-global-table, .personas-global-table__body { min-width: 0; max-width: 100%; }
+.personas-global-grid > :nth-child(2), .personas-global-grid > :nth-child(6), .personas-global-grid > :nth-child(7), .personas-global-grid > :nth-child(8) { justify-content: center; text-align: center; }
+
+@media (max-width: 1180px) {
+  .personas-global-grid { grid-template-columns: minmax(0,1.4fr) minmax(0,.72fr) minmax(0,1.05fr) minmax(0,1.05fr) minmax(0,.7fr) minmax(0,.62fr) minmax(0,.7fr); }
+  .personas-global-grid > :nth-child(6) { display: none; }
+}
+
+@media (max-width: 900px) {
+  .personas-global-grid { grid-template-columns: minmax(0,1.35fr) minmax(0,.72fr) minmax(0,1fr) minmax(0,.72fr) minmax(0,.62fr) minmax(0,.7fr); }
+  .personas-global-grid > :nth-child(4), .personas-global-grid > :nth-child(6) { display: none; }
+}
+
+@media (max-width: 720px) {
+  .personas-global-grid { grid-template-columns: minmax(0,1.35fr) minmax(0,.72fr) minmax(0,.62fr) minmax(0,.7fr); }
+  .personas-global-grid > :nth-child(3), .personas-global-grid > :nth-child(4), .personas-global-grid > :nth-child(5), .personas-global-grid > :nth-child(6) { display: none; }
+}

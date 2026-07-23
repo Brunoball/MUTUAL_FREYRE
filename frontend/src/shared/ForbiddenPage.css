@@ -1,0 +1,4 @@
+.state-page { min-height: 60vh; display: grid; place-content: center; justify-items: center; text-align: center; }
+.state-page__icon { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 20px; color: var(--danger); background: rgba(184,66,75,.1); font-size: 24px; }
+.state-page h1 { margin: 18px 0 7px; color: var(--navy-900); }
+.state-page p { margin: 0; color: var(--muted); }

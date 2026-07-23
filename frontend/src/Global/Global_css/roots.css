@@ -1,0 +1,29 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap");
+
+:root {
+  --navy-950: #07172a;
+  --navy-900: #0c2139;
+  --navy-800: #123251;
+  --blue-600: #1f6e9b;
+  --blue-500: #2d85b8;
+  --blue-100: #dceefa;
+  --teal-600: #147e7a;
+  --gold-500: #c99b49;
+  --surface: #ffffff;
+  --surface-soft: #f5f8fb;
+  --surface-muted: #ecf1f6;
+  --border: #dce5ee;
+  --text: #142438;
+  --muted: #627286;
+  --danger: #b8424b;
+  --shadow: 0 18px 45px -32px rgba(7, 23, 42, 0.48);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: var(--surface-soft);
+}
+
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+body { min-width: 320px; background: var(--surface-soft); }
+button, input { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }

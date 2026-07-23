@@ -4,7 +4,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import GuestRoute from "./GuestRoute";
 import PermissionGate from "./PermissionGate";
 import AppLayout from "../shared/AppLayout";
-import LoginPage from "../modules/auth/LoginPage";
+import InicioSesion from "../modules/login/InicioSesion";
 import DashboardPage from "../modules/dashboard/DashboardPage";
 import PersonasPage from "../modules/personas/PersonasPage";
 import AyudasPage from "../modules/ayudas/AyudasPage";
@@ -23,7 +23,7 @@ import ConfiguracionPage from "../modules/configuracion/ConfiguracionPage";
 export default function AppRouter() {
   return (
     <Routes>
-      <Route element={<GuestRoute />}><Route path="/" element={<LoginPage />} /></Route>
+      <Route element={<GuestRoute />}><Route path="/" element={<InicioSesion />} /></Route>
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/panel" element={<PermissionGate permission="dashboard.view"><DashboardPage /></PermissionGate>} />

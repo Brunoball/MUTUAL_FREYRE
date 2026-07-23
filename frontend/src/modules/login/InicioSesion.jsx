@@ -4,6 +4,7 @@ import { faEye, faEyeSlash, faLock, faUser } from "@fortawesome/free-solid-svg-i
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/AuthProvider";
 import logoPerfilTitleSf from "../../assets/images/logo_perfil_title_sf.png";
+import "./InicioSesion.css";
 
 const REMEMBER_KEY = "mutual_freyre_remembered_user";
 
@@ -11,7 +12,7 @@ function rememberedUsername() {
   try { return localStorage.getItem(REMEMBER_KEY) || ""; } catch { return ""; }
 }
 
-export default function LoginPage() {
+export default function InicioSesion() {
   const auth = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -48,30 +49,24 @@ export default function LoginPage() {
           <img src={logoPerfilTitleSf} alt="Perfil SF" />
         </div>
         <p className="login-brand__copy">Gestión centralizada de asociados, ayudas económicas, ahorros, valores, caja, bancos y contabilidad.</p>
-        <div className="login-brand__principles">
-          <span>Una sola institución</span><span>Arquitectura modular</span><span>Operaciones auditables</span>
-        </div>
       </section>
 
       <section className="login-access">
         <div className="login-card">
-          <header><p>Acceso al backoffice</p><h2>Iniciar sesión</h2><span>Ingresá tus credenciales institucionales.</span></header>
+          <header><h2>Iniciar sesión</h2><span>Ingresá tus credenciales institucionales.</span></header>
           <form onSubmit={submit}>
             <label className="login-field">
-              <span>Usuario</span>
               <div><FontAwesomeIcon icon={faUser} /><input value={usuario} onChange={(e) => setUsuario(e.target.value)} autoComplete="username" maxLength={100} required autoFocus /></div>
             </label>
             <label className="login-field">
-              <span>Contraseña</span>
               <div><FontAwesomeIcon icon={faLock} /><input type={visible ? "text" : "password"} value={contrasena} onChange={(e) => setContrasena(e.target.value)} autoComplete="current-password" maxLength={255} required />
                 <button type="button" onClick={() => setVisible((value) => !value)} aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}><FontAwesomeIcon icon={visible ? faEyeSlash : faEye} /></button>
               </div>
             </label>
-            <label className="login-remember"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /><span>Recordar solamente el usuario</span></label>
+            <label className="login-remember"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} /><span>Recordar cuenta</span></label>
             {message ? <div className="login-error" role="alert">{message}</div> : null}
             <button className="login-submit" type="submit" disabled={loading}>{loading ? "Verificando..." : "Ingresar al sistema"}</button>
           </form>
-          <footer>La sesión se valida en el servidor y no se guardan credenciales en el navegador.</footer>
         </div>
       </section>
     </main>

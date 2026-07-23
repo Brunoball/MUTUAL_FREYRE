@@ -5,6 +5,7 @@ import GlobalIcon from "../../Global/components/GlobalIcon";
 import ModuleFeedback from "../../Global/components/ModuleFeedback";
 import { ModulePage } from "../../Global/components/ModulePage";
 import { getAyudasStructure } from "./ayudas.api";
+import "./Ayudas.css";
 
 const normalizeText = (value) =>
   String(value ?? "")

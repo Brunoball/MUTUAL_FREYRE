@@ -1,6 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faDiagramProject, faLayerGroup } from "@fortawesome/free-solid-svg-icons";
+import "./ModuleScaffold.css";
 
 export default function ModuleScaffold({ module }) {
   return (

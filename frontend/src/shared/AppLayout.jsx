@@ -6,6 +6,7 @@ import { APP_NAME, INSTITUTION_NAME } from "../config/env";
 import { CONFIGURATION_NAV_ITEM, NAVIGATION_GROUPS } from "../config/navigation";
 import { useAuth } from "../app/AuthProvider";
 import mutualLogo from "../assets/images/logo_perfil_sf.png";
+import "./AppLayout.css";
 
 export default function AppLayout() {
   const [open, setOpen] = useState(false);

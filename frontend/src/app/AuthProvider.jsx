@@ -1,5 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { currentSessionRequest, loginRequest, logoutRequest } from "../modules/auth/auth.api";
+import {
+  consultarSesionActual,
+  solicitarCierreSesion,
+  solicitarInicioSesion,
+} from "../modules/login/inicioSesion.api";
 import { clearStoredSession, readStoredSession, saveStoredSession } from "../shared/session";
 
 const AuthContext = createContext(null);
@@ -22,7 +26,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let active = true;
-    currentSessionRequest()
+    consultarSesionActual()
       .then((data) => {
         if (active) persist(data);
       })
@@ -43,14 +47,14 @@ export function AuthProvider({ children }) {
   }, [clear]);
 
   const login = useCallback(async (credentials) => {
-    const data = await loginRequest(credentials);
+    const data = await solicitarInicioSesion(credentials);
     persist(data);
     return data;
   }, [persist]);
 
   const logout = useCallback(async () => {
     try {
-      await logoutRequest();
+      await solicitarCierreSesion();
     } finally {
       clear();
     }

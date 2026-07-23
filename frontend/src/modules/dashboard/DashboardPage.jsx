@@ -4,6 +4,7 @@ import { faArrowRight, faCubes, faDatabase, faLock, faRoute } from "@fortawesome
 import { useNavigate } from "react-router-dom";
 import { MODULE_CATALOG } from "../../config/moduleCatalog";
 import { useAuth } from "../../app/AuthProvider";
+import "./Dashboard.css";
 
 const highlights = [
   { icon: faCubes, title: "Monolito modular", text: "Un backend desplegable, dividido por dominios de negocio independientes." },
