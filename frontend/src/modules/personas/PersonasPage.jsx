@@ -14,7 +14,6 @@ import ModuleFeedback from "../../Global/components/ModuleFeedback";
 import { ModulePage } from "../../Global/components/ModulePage";
 
 import { getPersonasStructure } from "./personas.api";
-import "./Personas.css";
 
 import PersonaModal from "./PersonaModal";
 import {
