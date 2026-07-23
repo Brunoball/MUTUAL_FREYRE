@@ -72,7 +72,10 @@ final class PersonasRepository
                     pf.dni,
                     p.email,
                     p.telefono,
+                    p.domicilio,
                     p.activo,
+                    p.fecha_baja,
+                    p.motivo_baja,
                     p.creado_en,
                     loc.nombre AS localidad,
                     prov.nombre AS provincia,
@@ -293,6 +296,100 @@ final class PersonasRepository
         return (bool)$statement->fetchColumn();
     }
 
+    public function lockPersonForUpdate(int $personId): void
+    {
+        $statement = $this->db()->prepare(
+            'SELECT id_persona FROM per_personas WHERE id_persona = :id FOR UPDATE'
+        );
+        $statement->execute(['id' => $personId]);
+        if (!$statement->fetchColumn()) {
+            throw new \RuntimeException('No se pudo bloquear la persona solicitada.');
+        }
+    }
+
+    public function activeLinkImpact(int $personId): array
+    {
+        $statement = $this->db()->prepare(
+            "SELECT v.id_vinculo,
+                    v.tipo_vinculo,
+                    v.fecha_desde,
+                    v.fecha_hasta,
+                    'TITULAR' AS rol_persona,
+                    otra.id_persona AS id_otra_persona,
+                    otra.nombre_exhibicion AS nombre_otra_persona,
+                    COALESCE(otra_fisica.dni, otra.cuit_cuil) AS documento_otra_persona
+             FROM per_vinculos v
+             INNER JOIN per_personas otra ON otra.id_persona = v.id_persona_vinculada
+             LEFT JOIN per_personas_fisicas otra_fisica ON otra_fisica.id_persona = otra.id_persona
+             WHERE v.activo = 1
+               AND v.id_persona_titular = :titular_id
+
+             UNION ALL
+
+             SELECT v.id_vinculo,
+                    v.tipo_vinculo,
+                    v.fecha_desde,
+                    v.fecha_hasta,
+                    'VINCULADA' AS rol_persona,
+                    otra.id_persona AS id_otra_persona,
+                    otra.nombre_exhibicion AS nombre_otra_persona,
+                    COALESCE(otra_fisica.dni, otra.cuit_cuil) AS documento_otra_persona
+             FROM per_vinculos v
+             INNER JOIN per_personas otra ON otra.id_persona = v.id_persona_titular
+             LEFT JOIN per_personas_fisicas otra_fisica ON otra_fisica.id_persona = otra.id_persona
+             WHERE v.activo = 1
+               AND v.id_persona_vinculada = :linked_id
+
+             ORDER BY nombre_otra_persona, tipo_vinculo, id_vinculo"
+        );
+        $statement->execute([
+            'titular_id' => $personId,
+            'linked_id' => $personId,
+        ]);
+        $items = $statement->fetchAll();
+
+        $asHolder = 0;
+        $asLinked = 0;
+        foreach ($items as $item) {
+            if (($item['rol_persona'] ?? null) === 'TITULAR') {
+                $asHolder++;
+            } else {
+                $asLinked++;
+            }
+        }
+
+        return [
+            'total' => count($items),
+            'como_titular' => $asHolder,
+            'como_vinculada' => $asLinked,
+            'items' => $items,
+        ];
+    }
+
+    public function deactivateActiveLinksForPerson(int $personId, string $leaveDate): int
+    {
+        $statement = $this->db()->prepare(
+            'UPDATE per_vinculos
+             SET activo = 0,
+                 fecha_hasta = CASE
+                     WHEN fecha_desde IS NOT NULL AND :leave_date_check < fecha_desde THEN fecha_desde
+                     WHEN fecha_hasta IS NULL OR fecha_hasta > :leave_date_compare THEN :leave_date_set
+                     ELSE fecha_hasta
+                 END,
+                 actualizado_en = NOW()
+             WHERE activo = 1
+               AND (id_persona_titular = :titular_id OR id_persona_vinculada = :linked_id)'
+        );
+        $statement->execute([
+            'leave_date_check' => $leaveDate,
+            'leave_date_compare' => $leaveDate,
+            'leave_date_set' => $leaveDate,
+            'titular_id' => $personId,
+            'linked_id' => $personId,
+        ]);
+        return $statement->rowCount();
+    }
+
     public function insertPerson(array $data, int $userId): int
     {
         $statement = $this->db()->prepare(
@@ -481,30 +578,55 @@ final class PersonasRepository
         }
     }
 
-    public function setActive(int $personId, bool $active, int $userId, ?string $reason): void
-    {
+    public function setActive(
+        int $personId,
+        bool $active,
+        int $userId,
+        ?string $reason,
+        ?string $leaveDate
+    ): void {
         $statement = $this->db()->prepare(
             'UPDATE per_personas
-             SET activo = :activo, actualizado_por = :usuario, actualizado_en = NOW()
+             SET activo = :activo,
+                 fecha_baja = :fecha_baja,
+                 motivo_baja = :motivo_baja,
+                 actualizado_por = :usuario,
+                 actualizado_en = NOW()
              WHERE id_persona = :id'
         );
-        $statement->execute(['activo' => $active ? 1 : 0, 'usuario' => $userId, 'id' => $personId]);
+        $statement->execute([
+            'activo' => $active ? 1 : 0,
+            'fecha_baja' => $active ? null : $leaveDate,
+            'motivo_baja' => $active ? null : $reason,
+            'usuario' => $userId,
+            'id' => $personId,
+        ]);
 
         if ($active) {
             $this->db()->prepare(
                 "UPDATE per_asociados
                  SET estado = CASE WHEN estado = 'BAJA' THEN 'ACTIVO' ELSE estado END,
-                     fecha_baja = NULL, motivo_baja = NULL,
-                     actualizado_por = :usuario, actualizado_en = NOW()
+                     fecha_baja = NULL,
+                     motivo_baja = NULL,
+                     actualizado_por = :usuario,
+                     actualizado_en = NOW()
                  WHERE id_persona = :id"
             )->execute(['usuario' => $userId, 'id' => $personId]);
         } else {
             $this->db()->prepare(
                 "UPDATE per_asociados
-                 SET estado = 'BAJA', fecha_baja = CURRENT_DATE(), motivo_baja = :motivo,
-                     actualizado_por = :usuario, actualizado_en = NOW()
+                 SET estado = 'BAJA',
+                     fecha_baja = :fecha_baja,
+                     motivo_baja = :motivo,
+                     actualizado_por = :usuario,
+                     actualizado_en = NOW()
                  WHERE id_persona = :id"
-            )->execute(['motivo' => $reason, 'usuario' => $userId, 'id' => $personId]);
+            )->execute([
+                'fecha_baja' => $leaveDate,
+                'motivo' => $reason,
+                'usuario' => $userId,
+                'id' => $personId,
+            ]);
         }
     }
 

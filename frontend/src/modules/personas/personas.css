@@ -1,15 +1,15 @@
-/* Tabla de Personas: misma base visual y distribución flexible de Socios. */
+/* Tabla de Personas: información operativa, jerarquía clara y acciones compactas. */
 .personas-global-grid {
   width: 100%;
   min-width: 0;
   grid-template-columns:
-    minmax(0, 0.52fr)
-    minmax(0, 1.7fr)
-    minmax(0, 0.9fr)
-    minmax(0, 0.68fr)
-    minmax(0, 1fr)
-    minmax(0, 0.66fr)
-    minmax(0, 0.74fr);
+    minmax(175px, 1.48fr)
+    minmax(108px, 0.82fr)
+    minmax(165px, 1.22fr)
+    minmax(185px, 1.35fr)
+    minmax(170px, 1.2fr)
+    minmax(125px, 0.88fr)
+    minmax(112px, 0.7fr);
 }
 
 .personas-global-table,
@@ -23,10 +23,174 @@
   overflow-y: auto;
 }
 
+.personas-table-row .global-table-cell {
+  min-height: 74px;
+  padding-block: 10px;
+}
+
+.personas-table-row:hover .personas-person-cell > strong {
+  color: var(--global-ui-action);
+}
+
+.personas-person-cell > strong {
+  font-size: 13px;
+  letter-spacing: 0.005em;
+  transition: color var(--global-ui-transition);
+}
+
+.personas-table-meta {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--global-ui-action) 18%, white);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--global-ui-action) 5%, white);
+  color: color-mix(in srgb, var(--global-ui-action) 82%, var(--navy-900));
+  font-size: 9.5px;
+  font-weight: 760;
+  letter-spacing: 0.045em;
+  line-height: 1.35;
+}
+
+.personas-document-cell,
+.personas-date-cell {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.personas-document-cell strong,
+.personas-date-cell strong {
+  color: var(--navy-900);
+  font-size: 12.5px;
+  font-weight: 720;
+}
+
+.personas-document-cell small,
+.personas-date-cell small {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--global-ui-muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personas-table-line {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.personas-contact-cell > span,
+.personas-location-cell > span {
+  font-size: 11.5px;
+  font-weight: 610;
+}
+
+.personas-contact-cell > small,
+.personas-location-cell > small,
+.personas-membership-cell > small {
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personas-membership-chip {
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border: 1px solid var(--global-ui-border);
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 780;
+  letter-spacing: 0.045em;
+  line-height: 1.35;
+}
+
+.personas-membership-chip.is-associated {
+  border-color: color-mix(in srgb, var(--global-ui-success) 28%, white);
+  background: color-mix(in srgb, var(--global-ui-success) 8%, white);
+  color: var(--global-ui-success);
+}
+
+.personas-membership-chip.is-unassociated {
+  border-color: color-mix(in srgb, var(--global-ui-muted) 24%, white);
+  background: color-mix(in srgb, var(--global-ui-muted) 5%, white);
+  color: var(--global-ui-muted);
+}
+
 .personas-global-grid .global-table-actions {
   max-width: 100%;
-  flex-wrap: wrap;
-  gap: 4px;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.persona-action-button {
+  width: 31px;
+  height: 31px;
+  display: inline-grid;
+  flex: 0 0 31px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--navy-900) 14%, white);
+  border-radius: 9px;
+  background: white;
+  color: color-mix(in srgb, var(--navy-900) 72%, white);
+  cursor: pointer;
+  transition:
+    transform var(--global-ui-transition),
+    border-color var(--global-ui-transition),
+    background var(--global-ui-transition),
+    color var(--global-ui-transition),
+    box-shadow var(--global-ui-transition);
+}
+
+.persona-action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 15px -11px rgba(7, 23, 42, 0.75);
+}
+
+.persona-action-button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--global-ui-action) 14%, transparent);
+}
+
+.persona-action-button.is-info,
+.persona-action-button.is-edit {
+  border-color: color-mix(in srgb, var(--global-ui-action) 24%, white);
+  color: var(--global-ui-action);
+}
+
+.persona-action-button.is-info:hover,
+.persona-action-button.is-edit:hover {
+  background: color-mix(in srgb, var(--global-ui-action) 7%, white);
+}
+
+.persona-action-button.is-danger {
+  border-color: color-mix(in srgb, var(--global-ui-danger) 30%, white);
+  color: var(--global-ui-danger);
+}
+
+.persona-action-button.is-danger:hover {
+  border-color: color-mix(in srgb, var(--global-ui-danger) 48%, white);
+  background: color-mix(in srgb, var(--global-ui-danger) 8%, white);
+}
+
+.persona-action-button.is-success {
+  border-color: color-mix(in srgb, var(--global-ui-success) 30%, white);
+  color: var(--global-ui-success);
+}
+
+.persona-action-button.is-success:hover {
+  background: color-mix(in srgb, var(--global-ui-success) 8%, white);
 }
 
 /* Modal y secciones: adapta la base global al contenido amplio de Personas. */
@@ -290,7 +454,7 @@
 
 /* Confirmación de baja/reactivación, sin cuadros nativos del navegador. */
 .persona-state-modal.entity-modal {
-  width: min(520px, 100%);
+  width: min(610px, 100%);
 }
 
 .persona-state-confirm {
@@ -362,21 +526,43 @@
   white-space: nowrap;
 }
 
-.persona-state-confirm > .entity-field {
+.persona-state-confirm__fields {
   width: 100%;
+  display: grid;
+  grid-template-columns: minmax(165px, 0.58fr) minmax(0, 1.42fr);
+  align-items: stretch;
+  gap: 12px;
   text-align: left;
 }
 
-@media (max-width: 1180px) {
+.persona-state-confirm__fields .entity-field {
+  width: 100%;
+  margin: 0;
+}
+
+.persona-state-confirm__fields .entity-field.is-textarea {
+  min-height: 96px;
+}
+
+.persona-state-confirm__fields .entity-field input[type="date"] {
+  min-height: 58px;
+}
+
+@media (max-width: 1280px) {
   .personas-global-grid {
     grid-template-columns:
-      minmax(0, 0.48fr)
-      minmax(0, 1.55fr)
-      minmax(0, 0.86fr)
-      minmax(0, 0.64fr)
-      minmax(0, 0.92fr)
-      minmax(0, 0.62fr)
-      minmax(0, 0.7fr);
+      minmax(160px, 1.38fr)
+      minmax(102px, 0.8fr)
+      minmax(145px, 1.1fr)
+      minmax(155px, 1.18fr)
+      minmax(145px, 1.08fr)
+      minmax(112px, 0.82fr)
+      minmax(108px, 0.68fr);
+  }
+
+  .personas-table-row .global-table-cell,
+  .personas-global-table .global-div-table__head-cell {
+    padding-inline: 8px;
   }
 }
 
@@ -411,5 +597,185 @@
   .persona-state-confirm__details > div {
     grid-template-columns: 1fr;
     gap: 3px;
+  }
+
+  .persona-state-confirm__fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Control de vínculos antes de una baja: informa el impacto y exige confirmación. */
+.persona-state-modal.entity-modal {
+  width: min(690px, 100%);
+}
+
+.persona-link-impact {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 12px;
+  background: white;
+  text-align: left;
+}
+
+.persona-link-impact.has-links {
+  border-color: color-mix(in srgb, var(--global-ui-danger) 27%, white);
+  background: color-mix(in srgb, var(--global-ui-danger) 4%, white);
+}
+
+.persona-link-impact.is-clear {
+  border-color: color-mix(in srgb, var(--global-ui-success) 25%, white);
+  background: color-mix(in srgb, var(--global-ui-success) 4%, white);
+}
+
+.persona-link-impact.is-loading {
+  background: color-mix(in srgb, var(--global-ui-action) 4%, white);
+}
+
+.persona-link-impact__status {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  color: var(--global-ui-action);
+}
+
+.persona-link-impact.has-links .persona-link-impact__status {
+  color: var(--global-ui-danger);
+}
+
+.persona-link-impact.is-clear .persona-link-impact__status {
+  color: var(--global-ui-success);
+}
+
+.persona-link-impact__status > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.persona-link-impact__status strong {
+  color: var(--entity-modal-ink);
+  font-size: 12.5px;
+  font-weight: 760;
+}
+
+.persona-link-impact__status span {
+  color: var(--entity-modal-text);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.persona-link-impact__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding-left: 33px;
+}
+
+.persona-link-impact__summary span {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--global-ui-danger) 16%, white);
+  border-radius: 999px;
+  background: white;
+  color: var(--entity-modal-text);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.persona-link-impact__list {
+  max-height: 172px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 10px;
+  background: white;
+  list-style: none;
+}
+
+.persona-link-impact__list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--entity-modal-border);
+}
+
+.persona-link-impact__list li:last-child {
+  border-bottom: 0;
+}
+
+.persona-link-impact__list li > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.persona-link-impact__list strong,
+.persona-link-impact__list span,
+.persona-link-impact__list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.persona-link-impact__list strong {
+  color: var(--entity-modal-ink);
+  font-size: 11.5px;
+  font-weight: 730;
+}
+
+.persona-link-impact__list span,
+.persona-link-impact__list small {
+  color: var(--entity-modal-text);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.persona-link-impact__list small {
+  max-width: 230px;
+  text-align: right;
+}
+
+.persona-link-impact__confirmation {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--global-ui-danger) 22%, white);
+  border-radius: 10px;
+  background: white;
+  color: var(--entity-modal-ink);
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 680;
+  line-height: 1.42;
+}
+
+.persona-link-impact__confirmation input {
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: var(--global-ui-danger);
+}
+
+@media (max-width: 720px) {
+  .persona-link-impact__summary {
+    padding-left: 0;
+  }
+
+  .persona-link-impact__list li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .persona-link-impact__list small {
+    max-width: 100%;
+    text-align: left;
   }
 }

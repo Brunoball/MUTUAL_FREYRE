@@ -41,6 +41,12 @@ final class PersonasService
         return $record;
     }
 
+    public function linkImpact(int $personId): array
+    {
+        $this->detail($personId);
+        return $this->repository->activeLinkImpact($personId);
+    }
+
     public function create(array $input, array $session, string $correlationId): array
     {
         $userId = (int)$session['id_usuario'];
@@ -125,14 +131,86 @@ final class PersonasService
             ]);
         }
         $reason = $this->nullableString($input['motivo'] ?? null, 255);
+        $errors = [];
+        $leaveDate = $active
+            ? null
+            : $this->date($input['fecha_baja'] ?? null, 'fecha_baja', $errors);
+
         if (!$active && $reason === null) {
-            throw new ApiException('Ingresá el motivo de la baja.', 'VALIDATION_ERROR', 422, [
-                'motivo' => 'Obligatorio al dar de baja',
-            ]);
+            $errors['motivo'] = 'Obligatorio al dar de baja';
+        }
+        if (!$active && $leaveDate === null && !isset($errors['fecha_baja'])) {
+            $errors['fecha_baja'] = 'Obligatoria al dar de baja';
+        }
+        if ($leaveDate !== null && $leaveDate > (new \DateTimeImmutable('today'))->format('Y-m-d')) {
+            $errors['fecha_baja'] = 'La fecha de baja no puede ser posterior al día de hoy.';
+        }
+        if ($errors !== []) {
+            throw new ApiException(
+                'Revisá los datos de la baja.',
+                'VALIDATION_ERROR',
+                422,
+                $errors
+            );
         }
 
+        $emptyImpact = [
+            'total' => 0,
+            'como_titular' => 0,
+            'como_vinculada' => 0,
+            'items' => [],
+        ];
+        $confirmLinks = $active
+            ? false
+            : filter_var(
+                $input['confirmar_vinculos'] ?? false,
+                FILTER_VALIDATE_BOOL,
+                FILTER_NULL_ON_FAILURE
+            ) === true;
+
         $userId = (int)$session['id_usuario'];
-        Connection::transaction(fn () => $this->repository->setActive($personId, $active, $userId, $reason));
+        $statusResult = Connection::transaction(function () use (
+            $personId,
+            $active,
+            $userId,
+            $reason,
+            $leaveDate,
+            $confirmLinks,
+            $emptyImpact
+        ): array {
+            $this->repository->lockPersonForUpdate($personId);
+            $linkImpact = $active
+                ? $emptyImpact
+                : $this->repository->activeLinkImpact($personId);
+
+            if (!$active && (int)$linkImpact['total'] > 0 && !$confirmLinks) {
+                throw new ApiException(
+                    'La persona tiene vínculos activos. Revisalos y confirmá su cierre antes de darla de baja.',
+                    'ACTIVE_LINKS_REQUIRE_CONFIRMATION',
+                    409,
+                    ['confirmar_vinculos' => 'Debés confirmar el cierre de los vínculos activos.']
+                );
+            }
+
+            $this->repository->setActive(
+                $personId,
+                $active,
+                $userId,
+                $reason,
+                $leaveDate
+            );
+
+            $deactivatedLinks = (!$active && $leaveDate !== null)
+                ? $this->repository->deactivateActiveLinksForPerson($personId, $leaveDate)
+                : 0;
+
+            return [
+                'impacto' => $linkImpact,
+                'vinculos_desactivados' => $deactivatedLinks,
+            ];
+        });
+        $linkImpact = $statusResult['impacto'];
+        $deactivatedLinks = (int)$statusResult['vinculos_desactivados'];
 
         $this->audit->record(
             $userId,
@@ -140,7 +218,13 @@ final class PersonasService
             $active ? 'reactivar' : 'dar_baja',
             'persona',
             $personId,
-            ['estado_anterior' => (bool)($current['persona']['activo'] ?? false), 'motivo' => $reason],
+            [
+                'estado_anterior' => (bool)($current['persona']['activo'] ?? false),
+                'motivo' => $reason,
+                'fecha_baja' => $leaveDate,
+                'vinculos_activos_detectados' => (int)$linkImpact['total'],
+                'vinculos_desactivados' => $deactivatedLinks,
+            ],
             'success',
             $correlationId
         );

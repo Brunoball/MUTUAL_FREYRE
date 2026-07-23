@@ -33,6 +33,11 @@ final class PersonasController
         Response::success($this->service->detail($this->personId($request)));
     }
 
+    public function linkImpact(Request $request, array $session, string $correlationId): never
+    {
+        Response::success($this->service->linkImpact($this->personId($request)));
+    }
+
     public function create(Request $request, array $session, string $correlationId): never
     {
         Response::success($this->service->create($request->json(), $session, $correlationId), 201);

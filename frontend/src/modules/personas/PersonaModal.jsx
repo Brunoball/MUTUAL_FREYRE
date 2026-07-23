@@ -11,7 +11,12 @@ import {
 } from "../../Global/components/TabbedForm";
 import GlobalIcon from "../../Global/components/GlobalIcon";
 
-const TODAY = new Date().toISOString().slice(0, 10);
+const localDateValue = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 const isTrue = (value) => value === true || value === 1 || value === "1";
 const asValue = (value) =>
   value === null || value === undefined ? "" : String(value);
@@ -27,12 +32,6 @@ const toUiLabel = (value) => {
     match.toLocaleUpperCase("es-AR"),
   );
 };
-
-const uiOptions = (options = []) =>
-  options.map((option) => ({
-    ...option,
-    label: toUiLabel(option.label),
-  }));
 
 const createEmptyForm = (catalogs) => ({
   tipo_persona: "FISICA",
@@ -97,7 +96,7 @@ const createEmptyForm = (catalogs) => ({
   },
   asociado: {
     es_asociado: false,
-    fecha_ingreso: TODAY,
+    fecha_ingreso: localDateValue(),
     id_categoria_asociado: asValue(
       byCode(catalogs.categorias_asociados, "ACTIVO")?.id ||
         catalogs.categorias_asociados[0]?.id ||
@@ -188,7 +187,7 @@ const fromDetail = (detail, catalogs) => {
     },
     asociado: {
       es_asociado: Boolean(associate),
-      fecha_ingreso: associate?.fecha_ingreso || TODAY,
+      fecha_ingreso: associate?.fecha_ingreso || localDateValue(),
       id_categoria_asociado: asValue(
         associate?.id_categoria_asociado || form.asociado.id_categoria_asociado,
       ),
@@ -284,7 +283,7 @@ function Select({
   value,
   onChange,
   options,
-  placeholder = "Seleccionar",
+  placeholder = "SELECCIONAR",
   ...props
 }) {
   return (
@@ -371,7 +370,7 @@ export default function PersonaModal({
           id_persona_vinculada: "",
           alcance: "",
           operaciones_permitidas: [],
-          fecha_desde: TODAY,
+          fecha_desde: localDateValue(),
           fecha_hasta: "",
           activo: true,
           observaciones: "",
@@ -387,7 +386,7 @@ export default function PersonaModal({
         {
           id_persona_vinculada: "",
           porcentaje_participacion: "",
-          fecha_desde: TODAY,
+          fecha_desde: localDateValue(),
           fecha_hasta: "",
           activo: true,
           observaciones: "",
@@ -496,7 +495,7 @@ export default function PersonaModal({
                     }
                     type="button"
                   >
-                    {toUiLabel(option.label)}
+                    {option.label}
                   </button>
                 ))}
               </div>
@@ -739,7 +738,7 @@ export default function PersonaModal({
                   <Select
                     disabled={readOnly}
                     onChange={(value) => update("fisica", "genero", value)}
-                    options={uiOptions(GLOBAL_OPTIONS.genders)}
+                    options={GLOBAL_OPTIONS.genders}
                     value={form.fisica.genero}
                   />
                 </Field>
@@ -752,7 +751,7 @@ export default function PersonaModal({
                     onChange={(value) =>
                       update("fisica", "estado_civil", value)
                     }
-                    options={uiOptions(GLOBAL_OPTIONS.maritalStatuses)}
+                    options={GLOBAL_OPTIONS.maritalStatuses}
                     value={form.fisica.estado_civil}
                   />
                 </Field>
@@ -1060,7 +1059,7 @@ export default function PersonaModal({
                         onChange={(value) =>
                           update("asociado", "estado", value)
                         }
-                        options={uiOptions(GLOBAL_OPTIONS.associateStatuses)}
+                        options={GLOBAL_OPTIONS.associateStatuses}
                         value={form.asociado.estado}
                       />
                     </Field>
@@ -1252,7 +1251,7 @@ export default function PersonaModal({
                               )}
                               disabled={readOnly}
                               key={operation.value}
-                              label={toUiLabel(operation.label)}
+                              label={operation.label}
                               onChange={() =>
                                 toggleOperation(index, operation.value)
                               }
