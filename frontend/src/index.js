@@ -1,15 +1,19 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./app/App";
 import { AuthProvider } from "./app/AuthProvider";
 import "./Global/Global_css/roots.css";
 import "./Global/Global_css/Global.css";
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  throw new Error('No se encontró el elemento raíz con id "root".');
+}
+
+const root = ReactDOM.createRoot(rootElement);
+
 root.render(
-  <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  </React.StrictMode>
+  <AuthProvider>
+    <App />
+  </AuthProvider>
 );

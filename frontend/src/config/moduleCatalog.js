@@ -21,11 +21,11 @@ export const MODULE_CATALOG = {
   ayudas: {
     title: "Ayudas económicas",
     eyebrow: "Créditos y liquidaciones",
-    description: "Núcleo de solicitudes, evaluación, liquidación, planes, garantías, desembolsos, mutuos y renovaciones.",
+    description: "Liquidación, consulta, planes, garantías, acreditación en caja de ahorro común, mutuos y renovaciones.",
     permission: "ayudas.view",
-    status: "Estructura inicial",
+    status: "Operativo",
     sections: [
-      "Solicitudes y evaluación",
+      "Liquidación y consulta por socio o número",
       "Productos A, B, E, I y J configurables",
       "Sistemas de amortización y tasas versionadas",
       "Garantías, garantes y destino",
@@ -33,7 +33,7 @@ export const MODULE_CATALOG = {
       "Renovaciones e historial de estados",
     ],
     rules: [
-      "Las letras heredadas serán códigos de producto, no lógica hardcodeada.",
+      "Las letras A, B, E, I y J conservan la operatoria documentada de la Mutual.",
       "Cada condición aprobada conservará su versión histórica.",
       "No habrá desembolsos duplicados ni edición silenciosa del plan.",
     ],

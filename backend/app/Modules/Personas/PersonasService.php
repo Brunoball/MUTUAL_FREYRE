@@ -44,7 +44,14 @@ final class PersonasService
     public function linkImpact(int $personId): array
     {
         $this->detail($personId);
-        return $this->repository->activeLinkImpact($personId);
+        $links = $this->repository->activeLinkImpact($personId);
+        $aids = $this->repository->activeAidImpact($personId);
+        return $links + [
+            'ayudas_vigentes' => (int)$aids['total'],
+            'ayudas_como_socio' => (int)$aids['como_socio'],
+            'ayudas_como_garante' => (int)$aids['como_garante'],
+            'ayudas_items' => $aids['items'],
+        ];
     }
 
     public function create(array $input, array $session, string $correlationId): array
@@ -179,6 +186,18 @@ final class PersonasService
             $emptyImpact
         ): array {
             $this->repository->lockPersonForUpdate($personId);
+            $aidImpact = $active
+                ? ['total' => 0, 'como_socio' => 0, 'como_garante' => 0, 'items' => []]
+                : $this->repository->activeAidImpact($personId);
+            if (!$active && (int)$aidImpact['total'] > 0) {
+                throw new ApiException(
+                    'No se puede dar de baja a la persona porque interviene en ayudas económicas vigentes. Primero deben finalizarse, renovarse o anularse según corresponda.',
+                    'ACTIVE_AIDS_BLOCK_DEACTIVATION',
+                    409,
+                    ['activo' => 'La persona tiene obligaciones financieras vigentes.']
+                );
+            }
+
             $linkImpact = $active
                 ? $emptyImpact
                 : $this->repository->activeLinkImpact($personId);

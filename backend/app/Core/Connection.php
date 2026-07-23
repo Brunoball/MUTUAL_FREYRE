@@ -17,7 +17,7 @@ final class Connection
         $port = Env::int('DB_PORT', 3306);
         $name = Env::get('DB_NAME', 'mutual_freyre');
         $user = Env::get('DB_USER', 'root');
-        $pass = Env::get('DB_PASS', 'Gastex2233');
+        $pass = Env::get('DB_PASS', '');
         $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
         self::$instance = new PDO($dsn, $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
