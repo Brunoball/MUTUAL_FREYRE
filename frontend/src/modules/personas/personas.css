@@ -779,3 +779,21 @@
     text-align: left;
   }
 }
+
+.persona-aid-impact {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #991b1b;
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.persona-aid-impact .persona-link-impact__status svg {
+  color: #dc2626;
+}
+
+.persona-aid-impact .persona-link-impact__list li {
+  background: rgba(255, 255, 255, .75);
+  border-color: #fecaca;
+}

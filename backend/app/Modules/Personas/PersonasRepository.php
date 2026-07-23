@@ -366,6 +366,62 @@ final class PersonasRepository
         ];
     }
 
+    public function activeAidImpact(int $personId): array
+    {
+        $statement = $this->db()->prepare(
+            "SELECT a.id_ayuda,
+                    a.numero_ayuda,
+                    prod.codigo AS tipo,
+                    prod.nombre AS producto_nombre,
+                    a.fecha_liquidacion,
+                    a.fecha_vencimiento,
+                    a.moneda,
+                    a.capital_original,
+                    'SOCIO' AS rol_persona
+             FROM ae_ayudas a
+             INNER JOIN ae_productos prod ON prod.id_producto = a.id_producto
+             WHERE a.estado = 'VIGENTE' AND a.id_persona = :socio_id
+
+             UNION ALL
+
+             SELECT a.id_ayuda,
+                    a.numero_ayuda,
+                    prod.codigo AS tipo,
+                    prod.nombre AS producto_nombre,
+                    a.fecha_liquidacion,
+                    a.fecha_vencimiento,
+                    a.moneda,
+                    a.capital_original,
+                    'GARANTE' AS rol_persona
+             FROM ae_garantes g
+             INNER JOIN ae_ayudas a ON a.id_ayuda = g.id_ayuda
+             INNER JOIN ae_productos prod ON prod.id_producto = a.id_producto
+             WHERE a.estado = 'VIGENTE' AND g.id_persona = :garante_id
+
+             ORDER BY fecha_vencimiento, numero_ayuda"
+        );
+        $statement->execute([
+            'socio_id' => $personId,
+            'garante_id' => $personId,
+        ]);
+        $items = $statement->fetchAll();
+        $asAssociate = 0;
+        $asGuarantor = 0;
+        foreach ($items as $item) {
+            if (($item['rol_persona'] ?? null) === 'SOCIO') {
+                $asAssociate++;
+            } else {
+                $asGuarantor++;
+            }
+        }
+        return [
+            'total' => count($items),
+            'como_socio' => $asAssociate,
+            'como_garante' => $asGuarantor,
+            'items' => $items,
+        ];
+    }
+
     public function deactivateActiveLinksForPerson(int $personId, string $leaveDate): int
     {
         $statement = $this->db()->prepare(

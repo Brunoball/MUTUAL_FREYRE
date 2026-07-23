@@ -68,6 +68,10 @@ const EMPTY_LINK_IMPACT = {
   como_titular: 0,
   como_vinculada: 0,
   items: [],
+  ayudas_vigentes: 0,
+  ayudas_como_socio: 0,
+  ayudas_como_garante: 0,
+  ayudas_items: [],
 };
 
 const linkTypeLabel = (value) =>
@@ -301,6 +305,14 @@ export default function PersonasPage() {
       setFeedback({
         type: "warning",
         message: "La fecha de baja no puede ser posterior al día de hoy.",
+      });
+      return;
+    }
+    if (currentlyActive && Number(stateImpact.ayudas_vigentes || 0) > 0) {
+      setFeedback({
+        type: "warning",
+        message:
+          "No se puede dar de baja a una persona con ayudas económicas vigentes como socio o garante.",
       });
       return;
     }
@@ -647,6 +659,7 @@ export default function PersonasPage() {
             !stateReason.trim() ||
             !stateDate ||
             stateDate > localDateValue() ||
+            Number(stateImpact.ayudas_vigentes || 0) > 0 ||
             (Number(stateImpact.total || 0) > 0 && !stateImpactConfirmed))
         }
         submitLabel={isTrue(stateModal?.activo) ? "Dar de baja" : "Reactivar"}
@@ -689,6 +702,40 @@ export default function PersonasPage() {
               <dd>{isTrue(stateModal?.activo) ? "ACTIVA" : "BAJA"}</dd>
             </div>
           </dl>
+          {isTrue(stateModal?.activo) && Number(stateImpact.ayudas_vigentes || 0) > 0 ? (
+            <div className="persona-aid-impact">
+              <div className="persona-link-impact__status">
+                <GlobalIcon name="error" size={20} />
+                <div>
+                  <strong>
+                    {Number(stateImpact.ayudas_vigentes || 0) === 1
+                      ? "La persona interviene en 1 ayuda económica vigente"
+                      : `La persona interviene en ${stateImpact.ayudas_vigentes} ayudas económicas vigentes`}
+                  </strong>
+                  <span>
+                    La baja queda bloqueada. Primero debe finalizarse, renovarse o anularse cada ayuda según corresponda; una baja no puede borrar obligaciones del socio ni de un garante.
+                  </span>
+                </div>
+              </div>
+              <div className="persona-link-impact__summary">
+                <span>Como socio: {stateImpact.ayudas_como_socio || 0}</span>
+                <span>Como garante: {stateImpact.ayudas_como_garante || 0}</span>
+              </div>
+              <ul className="persona-link-impact__list">
+                {(stateImpact.ayudas_items || []).map((aid) => (
+                  <li key={`${aid.id_ayuda}-${aid.rol_persona}`}>
+                    <div>
+                      <strong>AYUDA N° {String(aid.numero_ayuda || 0).padStart(8, "0")} · TIPO {aid.tipo}</strong>
+                      <span>{aid.producto_nombre || "AYUDA ECONÓMICA"}</span>
+                    </div>
+                    <small>
+                      ROL: {aid.rol_persona} · VENCE: {formatDate(aid.fecha_vencimiento)}
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {isTrue(stateModal?.activo) ? (
             <div
               className={`persona-link-impact ${
