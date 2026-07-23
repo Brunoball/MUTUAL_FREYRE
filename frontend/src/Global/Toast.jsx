@@ -6,7 +6,14 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
-import GlobalIcon from "./components/GlobalIcon";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCheckCircle,
+  faExclamationTriangle,
+  faInfoCircle,
+  faSpinner,
+  faTimesCircle,
+} from "@fortawesome/free-solid-svg-icons";
 import "./Toast.css";
 
 const PERSISTENT_TYPES = new Set(["error", "advertencia", "alerta"]);
@@ -20,12 +27,30 @@ const normalizeType = (value) => {
 };
 
 const TYPE_CONFIG = {
-  exito: { className: "toast-exito", icon: "check" },
-  error: { className: "toast-error", icon: "error" },
-  advertencia: { className: "toast-advertencia", icon: "warning" },
-  alerta: { className: "toast-advertencia", icon: "warning" },
-  cargando: { className: "toast-cargando", icon: "loader" },
-  info: { className: "toast-info", icon: "info" },
+  exito: {
+    className: "toast-exito",
+    icon: faCheckCircle,
+  },
+  error: {
+    className: "toast-error",
+    icon: faTimesCircle,
+  },
+  advertencia: {
+    className: "toast-advertencia",
+    icon: faExclamationTriangle,
+  },
+  alerta: {
+    className: "toast-advertencia",
+    icon: faExclamationTriangle,
+  },
+  cargando: {
+    className: "toast-cargando",
+    icon: faSpinner,
+  },
+  info: {
+    className: "toast-info",
+    icon: faInfoCircle,
+  },
 };
 
 export default function Toast({
@@ -50,6 +75,7 @@ export default function Toast({
 
   const close = useCallback(() => {
     if (closeExecuted.current) return;
+
     closeExecuted.current = true;
     setLeaving(true);
     window.setTimeout(() => onClose?.(), 280);
@@ -61,7 +87,6 @@ export default function Toast({
     };
 
     const closeWithAction = (event) => {
-      if (persistent) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
 
@@ -77,10 +102,10 @@ export default function Toast({
       window.removeEventListener("keydown", closeWithEscape);
       document.removeEventListener("click", closeWithAction, true);
     };
-  }, [close, persistent]);
+  }, [close]);
 
   useEffect(() => {
-    if (persistent || normalizedType === "cargando") return undefined;
+    if (persistent) return undefined;
     if (resolvedDuration === undefined || resolvedDuration === null) {
       return undefined;
     }
@@ -96,7 +121,7 @@ export default function Toast({
       window.clearTimeout(leavingTimer);
       window.clearTimeout(closeTimer);
     };
-  }, [normalizedType, onClose, persistent, resolvedDuration]);
+  }, [onClose, persistent, resolvedDuration]);
 
   if (!resolvedMessage) return null;
 
@@ -107,10 +132,9 @@ export default function Toast({
       className={`toast-container ${config.className} ${leaving ? "desaparecer" : ""}`}
       role={normalizedType === "error" ? "alert" : "status"}
     >
-      <GlobalIcon
-        className={`toast-icon ${normalizedType === "cargando" ? "is-spinning" : ""}`}
-        name={config.icon}
-        size={22}
+      <FontAwesomeIcon
+        className={`toast-icon ${normalizedType === "cargando" ? "spin" : ""}`}
+        icon={config.icon}
       />
       <span className="toast-message">{resolvedMessage}</span>
 
@@ -122,7 +146,7 @@ export default function Toast({
           title="Cerrar"
           type="button"
         >
-          <GlobalIcon name="close" size={15} />
+          ×
         </button>
       ) : null}
     </div>

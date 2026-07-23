@@ -9,9 +9,9 @@ import { MODULE_CATALOG } from "../../config/moduleCatalog";
 import GlobalDivTable from "../../Global/components/GlobalDivTable";
 import GlobalActionIcon from "../../Global/components/GlobalActionIcon";
 import GlobalIcon from "../../Global/components/GlobalIcon";
-import ModuleFeedback from "../../Global/components/ModuleFeedback";
 import { ModulePage } from "../../Global/components/ModulePage";
 import ModalEliminarGlobal from "../../Global/Modales/ModalEliminarGlobal";
+import Toast from "../../Global/Toast";
 
 import PersonaModal from "./PersonaModal";
 import {
@@ -75,6 +75,14 @@ const linkTypeLabel = (value) =>
   String(value || "VÍNCULO")
     .replaceAll("_", " ")
     .toLocaleUpperCase("es-AR");
+
+const FEEDBACK_DURATION = {
+  success: 2800,
+  error: 4200,
+  warning: 4200,
+  info: 3200,
+  loading: null,
+};
 
 export default function PersonasPage() {
   const moduleConfig = MODULE_CATALOG.personas || {};
@@ -414,12 +422,19 @@ export default function PersonasPage() {
         tabsInTitle
         title={toUiLabel(moduleConfig.title || "Personas y asociados")}
       >
-        <ModuleFeedback
-          duration={feedback?.duration}
-          message={feedback?.message}
-          onClose={() => setFeedback(null)}
-          type={feedback?.type}
-        />
+        {feedback ? (
+          <Toast
+            duration={
+              feedback.duration === undefined
+                ? FEEDBACK_DURATION[feedback.type]
+                : feedback.duration
+            }
+            key={`${feedback.type}-${feedback.message}`}
+            message={feedback.message}
+            onClose={() => setFeedback(null)}
+            type={feedback.type}
+          />
+        ) : null}
 
         <GlobalDivTable
           ariaLabel="Listado de personas y asociados"
@@ -559,7 +574,7 @@ export default function PersonasPage() {
                       title="Ver información"
                       type="button"
                     >
-                      <GlobalActionIcon name="info" size={12} />
+                      <GlobalActionIcon name="eye" size={12} />
                     </button>
                     {canManage ? (
                       <>

@@ -90,16 +90,29 @@ export default function DashboardPage() {
     [data.cartera_por_producto],
   );
   const hasAlerts = Number(summary.cuotas_vencidas || 0) > 0;
+  const currentYear = new Date().getFullYear();
 
   const goTo = (permission, path) => (can(permission) ? () => navigate(path) : undefined);
 
   return (
     <section className="dashboard-page">
       <header className="dashboard-header">
-        <div>
-          <p>Resumen operativo</p>
+        <div className="dashboard-header__title">
           <h1>Panel general</h1>
-          <span>Vista rápida de asociados, personas, ayudas económicas y saldos.</span>
+          <p>Vista rápida de asociados, personas, ayudas económicas y saldos.</p>
+        </div>
+
+        <div className="dashboard-header__tools" aria-label="Periodo del dashboard">
+          <span className={`dashboard-chip ${loading ? "is-loading" : ""}`}>
+            {loading ? (
+              <span className="dashboard-chip__skeleton" aria-hidden="true">&nbsp;</span>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faCalendarAlt} />
+                Año {currentYear}
+              </>
+            )}
+          </span>
         </div>
       </header>
 
@@ -197,39 +210,41 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <div className={`dashboard-alert-card ${hasAlerts ? "is-danger" : "is-clear"}`}>
-            <span><FontAwesomeIcon icon={hasAlerts ? faExclamationTriangle : faCheckCircle} /></span>
-            <div>
-              <small>Cuotas vencidas</small>
-              <strong>{formatNumber(summary.cuotas_vencidas)}</strong>
-              <b>{formatMoney(summary.importe_vencido_ars)}</b>
+          <div className="dashboard-status-panel__body">
+            <div className={`dashboard-alert-card ${hasAlerts ? "is-danger" : "is-clear"}`}>
+              <span><FontAwesomeIcon icon={hasAlerts ? faExclamationTriangle : faCheckCircle} /></span>
+              <div>
+                <small>Cuotas vencidas</small>
+                <strong>{formatNumber(summary.cuotas_vencidas)}</strong>
+                <b>{formatMoney(summary.importe_vencido_ars)}</b>
+              </div>
             </div>
-          </div>
 
-          <div className="dashboard-indicator-grid">
-            <div className="dashboard-indicator">
-              <span><FontAwesomeIcon icon={faClock} /></span>
-              <small>Próximos 7 días</small>
-              <strong>{formatNumber(summary.cuotas_proximas_7)} cuotas</strong>
-              <b>{formatMoney(summary.importe_proximo_7_ars)}</b>
-            </div>
-            <div className="dashboard-indicator">
-              <span><FontAwesomeIcon icon={faCalendarAlt} /></span>
-              <small>Próximos 30 días</small>
-              <strong>{formatNumber(summary.cuotas_proximas_30)} cuotas</strong>
-              <b>{formatMoney(summary.importe_proximo_30_ars)}</b>
-            </div>
-            <div className="dashboard-indicator">
-              <span><FontAwesomeIcon icon={faLink} /></span>
-              <small>Vínculos activos</small>
-              <strong>{formatNumber(summary.vinculos_activos)}</strong>
-              <b>Relaciones vigentes</b>
-            </div>
-            <div className="dashboard-indicator">
-              <span><FontAwesomeIcon icon={faWallet} /></span>
-              <small>Capital vigente</small>
-              <strong>{formatMoney(summary.capital_vigente_ars)}</strong>
-              <b>{formatNumber(summary.ayudas_vigentes)} operaciones</b>
+            <div className="dashboard-indicator-grid">
+              <div className="dashboard-indicator">
+                <span><FontAwesomeIcon icon={faClock} /></span>
+                <small>Próximos 7 días</small>
+                <strong>{formatNumber(summary.cuotas_proximas_7)} cuotas</strong>
+                <b>{formatMoney(summary.importe_proximo_7_ars)}</b>
+              </div>
+              <div className="dashboard-indicator">
+                <span><FontAwesomeIcon icon={faCalendarAlt} /></span>
+                <small>Próximos 30 días</small>
+                <strong>{formatNumber(summary.cuotas_proximas_30)} cuotas</strong>
+                <b>{formatMoney(summary.importe_proximo_30_ars)}</b>
+              </div>
+              <div className="dashboard-indicator">
+                <span><FontAwesomeIcon icon={faLink} /></span>
+                <small>Vínculos activos</small>
+                <strong>{formatNumber(summary.vinculos_activos)}</strong>
+                <b>Relaciones vigentes</b>
+              </div>
+              <div className="dashboard-indicator">
+                <span><FontAwesomeIcon icon={faWallet} /></span>
+                <small>Capital vigente</small>
+                <strong>{formatMoney(summary.capital_vigente_ars)}</strong>
+                <b>{formatNumber(summary.ayudas_vigentes)} operaciones</b>
+              </div>
             </div>
           </div>
         </aside>

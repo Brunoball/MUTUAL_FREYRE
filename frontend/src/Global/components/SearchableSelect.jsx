@@ -1,90 +1,163 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
-import "./SearchableSelect.css";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import GlobalIcon from "./GlobalIcon";
 
-const normalizeSearch = (value) =>
+const normalizeText = (value) =>
   String(value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("es-AR")
     .trim();
 
+const optionValue = (option) =>
+  option?.value ?? option?.id ?? option?.codigo ?? "";
+
+const optionLabel = (option) =>
+  String(
+    option?.label ??
+      option?.nombre ??
+      option?.descripcion ??
+      option?.texto ??
+      optionValue(option),
+  ).trim();
+
 export default function SearchableSelect({
-  value,
-  onChange,
-  options = [],
-  placeholder = "BUSCAR Y SELECCIONAR...",
-  emptyMessage = "NO SE ENCONTRARON PERSONAS",
+  ariaLabel = "Buscar una opción",
+  className = "",
   clearLabel = "SIN SELECCIÓN",
-  clearable = true,
   disabled = false,
-  ariaLabel,
+  emptyMessage = "NO SE ENCONTRARON RESULTADOS",
+  id,
+  maxResults = 80,
+  name,
+  onBlur,
+  onChange,
+  onFocus,
+  options = [],
+  placeholder = "BUSCAR...",
+  value = "",
 }) {
   const rootRef = useRef(null);
-  const listboxId = useId();
+  const inputRef = useRef(null);
+  const optionRefs = useRef([]);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  const normalizedOptions = useMemo(
+    () =>
+      (Array.isArray(options) ? options : [])
+        .filter((option) => option && typeof option === "object")
+        .map((option) => ({
+          original: option,
+          label: optionLabel(option),
+          value: optionValue(option),
+        }))
+        .filter((option) => option.label),
+    [options],
+  );
 
   const selectedOption = useMemo(
-    () => options.find((option) => String(option.value) === String(value ?? "")),
-    [options, value],
+    () =>
+      normalizedOptions.find(
+        (option) => String(option.value) === String(value ?? ""),
+      ) || null,
+    [normalizedOptions, value],
   );
 
   const filteredOptions = useMemo(() => {
-    const normalizedQuery = normalizeSearch(query);
-    if (!normalizedQuery) return options;
+    const normalizedQuery = normalizeText(query);
+    const filtered = normalizedQuery
+      ? normalizedOptions.filter((option) =>
+          normalizeText(option.label).includes(normalizedQuery),
+        )
+      : normalizedOptions;
 
-    return options.filter((option) => {
-      const searchableText = `${option.label ?? ""} ${option.searchText ?? ""}`;
-      return normalizeSearch(searchableText).includes(normalizedQuery);
-    });
-  }, [options, query]);
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [query, filteredOptions.length]);
+    return filtered.slice(0, Math.max(Number(maxResults) || 1, 1));
+  }, [maxResults, normalizedOptions, query]);
 
   useEffect(() => {
     if (!open) return undefined;
 
     const closeFromOutside = (event) => {
-      if (!rootRef.current?.contains(event.target)) {
-        setOpen(false);
-        setQuery("");
-      }
+      if (rootRef.current?.contains(event.target)) return;
+      setOpen(false);
+      setQuery("");
+      setActiveIndex(-1);
+      onBlur?.(event);
     };
 
-    document.addEventListener("mousedown", closeFromOutside);
-    return () => document.removeEventListener("mousedown", closeFromOutside);
-  }, [open]);
+    document.addEventListener("mousedown", closeFromOutside, true);
+    document.addEventListener("touchstart", closeFromOutside, true);
+    return () => {
+      document.removeEventListener("mousedown", closeFromOutside, true);
+      document.removeEventListener("touchstart", closeFromOutside, true);
+    };
+  }, [onBlur, open]);
 
-  const openMenu = () => {
-    if (disabled) return;
-    if (!open) {
+  useEffect(() => {
+    if (!open || activeIndex < 0) return;
+    optionRefs.current[activeIndex]?.scrollIntoView?.({
+      block: "nearest",
+    });
+  }, [activeIndex, open]);
+
+  useEffect(() => {
+    if (disabled) {
+      setOpen(false);
       setQuery("");
-      setActiveIndex(0);
+      setActiveIndex(-1);
     }
+  }, [disabled]);
+
+  const openList = (event) => {
+    if (disabled) return;
     setOpen(true);
+    setQuery("");
+    setActiveIndex(-1);
+    onFocus?.(event);
   };
 
-  const selectOption = (nextValue) => {
-    onChange?.(String(nextValue ?? ""));
+  const closeList = () => {
     setOpen(false);
     setQuery("");
-    setActiveIndex(0);
+    setActiveIndex(-1);
   };
 
-  const onKeyDown = (event) => {
+  const selectOption = (option) => {
+    onChange?.(option.value, option.original);
+    closeList();
+    window.setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const clearSelection = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (disabled) return;
+    onChange?.("", null);
+    setQuery("");
+    setOpen(true);
+    setActiveIndex(-1);
+    window.setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleKeyDown = (event) => {
     if (disabled) return;
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
       if (!open) {
-        openMenu();
-        return;
+        setOpen(true);
+        setQuery("");
       }
       setActiveIndex((current) =>
-        Math.min(current + 1, Math.max(filteredOptions.length - 1, 0)),
+        filteredOptions.length
+          ? Math.min(current + 1, filteredOptions.length - 1)
+          : -1,
       );
       return;
     }
@@ -92,95 +165,151 @@ export default function SearchableSelect({
     if (event.key === "ArrowUp") {
       event.preventDefault();
       if (!open) {
-        openMenu();
+        setOpen(true);
+        setQuery("");
+      }
+      setActiveIndex((current) =>
+        filteredOptions.length
+          ? current <= 0
+            ? filteredOptions.length - 1
+            : current - 1
+          : -1,
+      );
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      if (!open) {
+        setOpen(true);
+        setQuery("");
         return;
       }
-      setActiveIndex((current) => Math.max(current - 1, 0));
-      return;
-    }
-
-    if (event.key === "Enter" && open) {
-      event.preventDefault();
       const option = filteredOptions[activeIndex];
-      if (option) selectOption(option.value);
+      if (option) selectOption(option);
       return;
     }
 
-    if (event.key === "Escape" && open) {
+    if (event.key === "Escape") {
+      if (!open) return;
       event.preventDefault();
-      setOpen(false);
-      setQuery("");
+      event.stopPropagation();
+      closeList();
+      return;
     }
+
+    if (event.key === "Tab") closeList();
   };
 
   const inputValue = open ? query : selectedOption?.label || "";
+  const listboxId = id ? `${id}-options` : undefined;
 
   return (
     <div
-      className={`searchable-select ${open ? "is-open" : ""} ${disabled ? "is-disabled" : ""}`.trim()}
+      className={`global-searchable-select ${open ? "is-open" : ""} ${
+        disabled ? "is-disabled" : ""
+      } ${className}`.trim()}
       ref={rootRef}
     >
-      <div className="searchable-select__control" onMouseDown={openMenu}>
+      <div className="global-searchable-select__control">
+        <GlobalIcon
+          className="global-searchable-select__search-icon"
+          name="search"
+          size={17}
+        />
         <input
           aria-autocomplete="list"
           aria-controls={listboxId}
           aria-expanded={open}
-          aria-label={ariaLabel || placeholder}
+          aria-label={ariaLabel}
           autoComplete="off"
+          className="global-searchable-select__input"
           disabled={disabled}
+          id={id}
+          name={name}
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);
+            setActiveIndex(-1);
           }}
-          onFocus={openMenu}
-          onKeyDown={onKeyDown}
-          placeholder={placeholder}
+          onClick={openList}
+          onFocus={openList}
+          onKeyDown={handleKeyDown}
+          placeholder={open ? placeholder : ""}
+          ref={inputRef}
           role="combobox"
-          type="text"
           value={inputValue}
         />
-        <span aria-hidden="true" className="searchable-select__chevron">⌄</span>
+
+        {(selectedOption || query) && !disabled ? (
+          <button
+            aria-label={clearLabel}
+            className="global-searchable-select__clear"
+            onClick={clearSelection}
+            title={clearLabel}
+            type="button"
+          >
+            <GlobalIcon name="close" size={14} />
+          </button>
+        ) : (
+          <span
+            aria-hidden="true"
+            className="global-searchable-select__indicator"
+          />
+        )}
       </div>
 
       {open ? (
-        <div className="searchable-select__menu" id={listboxId} role="listbox">
-          {clearable ? (
-            <div
-              aria-selected={!value}
-              className={`searchable-select__option is-clear ${!value ? "is-selected" : ""}`.trim()}
-              onClick={(event) => event.preventDefault()}
-              onMouseDown={(event) => {
-                event.preventDefault();
-                selectOption("");
-              }}
-              role="option"
-            >
-              {clearLabel}
-            </div>
-          ) : null}
+        <div
+          aria-label={ariaLabel}
+          className="global-searchable-select__menu"
+          id={listboxId}
+          role="listbox"
+        >
+          <button
+            aria-selected={String(value ?? "") === ""}
+            className={`global-searchable-select__option global-searchable-select__option--clear ${
+              String(value ?? "") === "" ? "is-selected" : ""
+            }`.trim()}
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={clearSelection}
+            role="option"
+            type="button"
+          >
+            {clearLabel}
+          </button>
 
           {filteredOptions.length ? (
             filteredOptions.map((option, index) => {
-              const selected = String(option.value) === String(value ?? "");
+              const selected =
+                String(option.value) === String(value ?? "");
               return (
-                <div
+                <button
                   aria-selected={selected}
-                  className={`searchable-select__option ${selected ? "is-selected" : ""} ${index === activeIndex ? "is-active" : ""}`.trim()}
-                  key={option.value}
-                  onClick={(event) => event.preventDefault()}
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    selectOption(option.value);
-                  }}
+                  className={`global-searchable-select__option ${
+                    selected ? "is-selected" : ""
+                  } ${activeIndex === index ? "is-active" : ""}`.trim()}
+                  key={`${String(option.value)}-${option.label}`}
+                  onClick={() => selectOption(option)}
+                  onMouseDown={(event) => event.preventDefault()}
                   onMouseEnter={() => setActiveIndex(index)}
+                  ref={(element) => {
+                    optionRefs.current[index] = element;
+                  }}
                   role="option"
+                  title={option.label}
+                  type="button"
                 >
-                  {option.label}
-                </div>
+                  <span>{option.label}</span>
+                  {selected ? <GlobalIcon name="check" size={16} /> : null}
+                </button>
               );
             })
           ) : (
-            <div className="searchable-select__empty">{emptyMessage}</div>
+            <div className="global-searchable-select__empty">
+              <GlobalIcon name="inbox" size={18} />
+              <span>{emptyMessage}</span>
+            </div>
           )}
         </div>
       ) : null}

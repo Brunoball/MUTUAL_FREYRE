@@ -1,4 +1,4 @@
-/* Modal global de confirmación migrado de Mesas y adaptado a Freyre. */
+/* Modal global de confirmación migrado de Mesas. */
 .gdel-overlay,
 .gdel-overlay * {
   box-sizing: border-box;
@@ -15,7 +15,7 @@
   justify-content: center;
   padding: 16px;
   overflow: hidden;
-  background: rgba(7, 23, 42, 0.58);
+  background: rgba(8, 16, 30, 0.55);
   backdrop-filter: blur(5px);
   overscroll-behavior: none;
   touch-action: none;
@@ -24,40 +24,40 @@
 
 .gdel-modal {
   position: relative;
-  width: min(560px, 100%);
+  width: min(520px, 100%);
   max-height: calc(100dvh - 32px);
   padding: 20px 18px 16px;
   overflow-x: hidden;
   overflow-y: auto;
-  border: 1px solid color-mix(in srgb, var(--navy-900) 12%, white);
-  border-top: 3px solid var(--global-ui-danger);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-top: 3px solid var(--balto-danger, #e13d45);
   border-radius: 18px;
   background: white;
   box-shadow:
-    0 32px 80px -20px rgba(1, 15, 32, 0.38),
-    0 0 0 1px rgba(7, 23, 42, 0.06);
-  color: var(--global-ui-text);
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    0 32px 80px -20px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(15, 23, 42, 0.08);
+  color: var(--balto-ink, #3a2e2b);
+  font-family:
+    Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--global-ui-muted) 30%, transparent)
-    transparent;
+  scrollbar-color: rgba(120, 102, 97, 0.3) transparent;
   animation: gdel-pop 180ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .gdel-modal--warning {
-  border-top-color: var(--gold-500);
+  border-top-color: var(--balto-warning, #f59e0b);
 }
 
 .gdel-modal--success {
-  border-top-color: var(--global-ui-success);
+  border-top-color: var(--balto-success, #22ad5c);
 }
 
 .gdel-modal--primary {
-  border-top-color: var(--global-ui-action);
+  border-top-color: var(--balto-action, #c48b3b);
 }
 
 .gdel-modal--danger {
-  border-top-color: var(--global-ui-danger);
+  border-top-color: var(--balto-danger, #e13d45);
 }
 
 @keyframes gdel-fade {
@@ -92,7 +92,7 @@
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--global-ui-muted);
+  color: #786661;
   cursor: pointer;
   transition:
     background 150ms ease,
@@ -103,8 +103,8 @@
 
 .gdel-close:hover:not(:disabled) {
   transform: rotate(90deg);
-  background: var(--surface-muted);
-  color: var(--navy-900);
+  background: #f4ede4;
+  color: var(--balto-ink, #3a2e2b);
 }
 
 .gdel-close:disabled {
@@ -123,33 +123,33 @@
 }
 
 .gdel-icon--danger {
-  border-color: color-mix(in srgb, var(--global-ui-danger) 24%, white);
-  background: color-mix(in srgb, var(--global-ui-danger) 10%, white);
-  color: var(--global-ui-danger);
+  border-color: rgba(225, 61, 69, 0.22);
+  background: rgba(225, 61, 69, 0.1);
+  color: var(--balto-danger, #e13d45);
 }
 
 .gdel-icon--warning {
-  border-color: color-mix(in srgb, var(--gold-500) 30%, white);
-  background: color-mix(in srgb, var(--gold-500) 12%, white);
-  color: color-mix(in srgb, var(--gold-500) 76%, var(--navy-900));
+  border-color: rgba(245, 158, 11, 0.26);
+  background: rgba(245, 158, 11, 0.12);
+  color: #b7791f;
 }
 
 .gdel-icon--success {
-  border-color: color-mix(in srgb, var(--global-ui-success) 26%, white);
-  background: color-mix(in srgb, var(--global-ui-success) 11%, white);
-  color: var(--global-ui-success);
+  border-color: rgba(34, 173, 92, 0.24);
+  background: rgba(34, 173, 92, 0.12);
+  color: #16864a;
 }
 
 .gdel-icon--primary {
-  border-color: color-mix(in srgb, var(--global-ui-action) 24%, white);
-  background: var(--global-ui-action-soft);
-  color: var(--global-ui-action);
+  border-color: rgba(196, 139, 59, 0.22);
+  background: rgba(196, 139, 59, 0.1);
+  color: var(--balto-action, #c48b3b);
 }
 
 .gdel-title {
   margin: 0;
   padding: 0 36px;
-  color: var(--navy-900);
+  color: var(--balto-ink, #3a2e2b);
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -158,25 +158,29 @@
 }
 
 .gdel-title--danger {
-  color: color-mix(in srgb, var(--global-ui-danger) 72%, var(--navy-900));
+  color: color-mix(
+    in srgb,
+    var(--balto-danger, #e13d45) 70%,
+    var(--balto-ink, #3a2e2b)
+  );
 }
 
 .gdel-title--warning {
-  color: color-mix(in srgb, var(--gold-500) 68%, var(--navy-900));
+  color: #9a6416;
 }
 
 .gdel-title--success {
-  color: var(--global-ui-success);
+  color: #16864a;
 }
 
 .gdel-title--primary {
-  color: var(--global-ui-action);
+  color: var(--balto-action, #c48b3b);
 }
 
 .gdel-body {
   max-width: 470px;
   margin: 10px auto 14px;
-  color: var(--global-ui-muted);
+  color: #786661;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.45;
@@ -188,8 +192,8 @@
   margin-top: 3px;
   color: color-mix(
     in srgb,
-    var(--global-ui-text) 72%,
-    var(--global-ui-muted)
+    var(--balto-ink, #3a2e2b) 72%,
+    #786661
   );
   font-weight: 650;
 }
@@ -198,9 +202,9 @@
   display: grid;
   gap: 9px;
   padding: 12px 14px;
-  border: 1px solid var(--global-ui-border);
+  border: 1px solid rgba(15, 23, 42, 0.1);
   border-radius: 14px;
-  background: linear-gradient(180deg, white, var(--surface-soft));
+  background: linear-gradient(180deg, #fff, #fbf7ef);
 }
 
 .gdel-row {
@@ -211,13 +215,13 @@
 
 .gdel-label {
   min-width: max-content;
-  color: var(--global-ui-muted);
+  color: #6a7989;
   font-size: 11.5px;
   font-weight: 650;
 }
 
 .gdel-value {
-  color: var(--navy-900);
+  color: var(--balto-ink, #3a2e2b);
   font-size: 12px;
   font-weight: 650;
   text-align: right;
@@ -231,7 +235,7 @@
 }
 
 .gdel-reason__label {
-  color: var(--global-ui-muted);
+  color: #786661;
   font-size: 12px;
   font-weight: 750;
 }
@@ -242,11 +246,10 @@
   padding: 11px 12px;
   resize: vertical;
   outline: none;
-  border: 1px solid
-    color-mix(in srgb, var(--navy-900) 16%, var(--global-ui-border));
+  border: 1px solid rgba(15, 23, 42, 0.14);
   border-radius: 14px;
   background: white;
-  color: var(--global-ui-text);
+  color: var(--balto-ink, #3a2e2b);
   font: inherit;
   font-size: 13px;
   transition:
@@ -256,13 +259,12 @@
 }
 
 .gdel-reason textarea:focus {
-  border-color: var(--global-ui-action);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--global-ui-action) 13%, transparent);
+  border-color: var(--balto-action, #c48b3b);
+  box-shadow: 0 0 0 3px rgba(196, 139, 59, 0.12);
 }
 
 .gdel-reason textarea::placeholder {
-  color: color-mix(in srgb, var(--global-ui-muted) 72%, white);
+  color: #94a3b8;
 }
 
 .gdel-extraContent {
@@ -306,13 +308,13 @@
 }
 
 .gdel-btn--ghost {
-  border-color: color-mix(in srgb, var(--navy-900) 9%, white);
-  background: var(--surface-muted);
-  color: var(--global-ui-text);
+  border-color: rgba(15, 23, 42, 0.08);
+  background: #f1f5f9;
+  color: #374151;
 }
 
 .gdel-btn--ghost:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--surface-muted) 76%, var(--navy-900));
+  background: #e9eef5;
 }
 
 .gdel-btn--solid-danger,
@@ -320,23 +322,23 @@
 .gdel-btn--solid-success,
 .gdel-btn--solid-primary {
   color: white;
-  box-shadow: 0 10px 22px rgba(7, 23, 42, 0.14);
+  box-shadow: 0 10px 22px rgba(58, 46, 43, 0.12);
 }
 
 .gdel-btn--solid-danger {
-  background: var(--global-ui-danger);
+  background: var(--balto-danger, #e13d45);
 }
 
 .gdel-btn--solid-warning {
-  background: color-mix(in srgb, var(--gold-500) 82%, var(--navy-900));
+  background: var(--balto-warning, #f59e0b);
 }
 
 .gdel-btn--solid-success {
-  background: var(--global-ui-success);
+  background: var(--balto-success, #22ad5c);
 }
 
 .gdel-btn--solid-primary {
-  background: var(--global-ui-action);
+  background: var(--balto-action, #c48b3b);
 }
 
 .gdel-btn--solid-danger:hover:not(:disabled),
