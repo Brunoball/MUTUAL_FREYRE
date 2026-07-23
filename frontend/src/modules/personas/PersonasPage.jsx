@@ -1,19 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "../../app/AuthProvider";
+import { catalogToOptions, GLOBAL_OPTIONS } from "../../config/globalOptions";
 import {
-  catalogToOptions,
-  GLOBAL_OPTIONS,
-  toUpperText,
-  uppercaseDeep,
-} from "../../config/globalOptions";
-import { EMPTY_PERSONAS_CATALOGS, normalizePersonasCatalogs } from "../../config/globalCatalogs";
+  EMPTY_PERSONAS_CATALOGS,
+  normalizePersonasCatalogs,
+} from "../../config/globalCatalogs";
 import { MODULE_CATALOG } from "../../config/moduleCatalog";
 import GlobalDivTable from "../../Global/components/GlobalDivTable";
+import CrudModal from "../../Global/components/CrudModal";
 import GlobalIcon from "../../Global/components/GlobalIcon";
 import ModuleFeedback from "../../Global/components/ModuleFeedback";
 import { ModulePage } from "../../Global/components/ModulePage";
-
-import { getPersonasStructure } from "./personas.api";
 
 import PersonaModal from "./PersonaModal";
 import {
@@ -26,10 +23,24 @@ import {
 } from "./personas.api";
 import "./personas.css";
 
-
 const isTrue = (value) => value === true || value === 1 || value === "1";
-const typeLabel = (value) => (value === "JURIDICA" ? "JURÍDICA" : "FÍSICA");
+const typeLabel = (value) => (value === "JURIDICA" ? "Jurídica" : "Física");
+const UI_ACRONYMS = /\b(dni|cuit|cuil|iva|pep|arca|inaes|cbu)\b/gi;
 
+const toUiLabel = (value) => {
+  const text = String(value ?? "").trim();
+  if (!text) return text;
+  const normalized = `${text.charAt(0).toLocaleUpperCase("es-AR")}${text.slice(1).toLocaleLowerCase("es-AR")}`;
+  return normalized.replace(UI_ACRONYMS, (match) =>
+    match.toLocaleUpperCase("es-AR"),
+  );
+};
+
+const uiOptions = (options = []) =>
+  options.map((option) => ({
+    ...option,
+    label: toUiLabel(option.label),
+  }));
 
 export default function PersonasPage() {
   const moduleConfig = MODULE_CATALOG.personas || {};
@@ -53,6 +64,9 @@ export default function PersonasPage() {
   const [modalLoading, setModalLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [stateModal, setStateModal] = useState(null);
+  const [stateReason, setStateReason] = useState("");
+  const [changingStatus, setChangingStatus] = useState(false);
 
   const loadCatalogs = useCallback(async () => {
     setCatalogsLoading(true);
@@ -62,35 +76,46 @@ export default function PersonasPage() {
     } catch (error) {
       setFeedback({
         type: "error",
-        message: toUpperText(error?.message || "NO SE PUDIERON CARGAR LOS SELECTORES DEL SISTEMA."),
+        message:
+          error?.message || "No se pudieron cargar los selectores del sistema.",
       });
     } finally {
       setCatalogsLoading(false);
     }
   }, []);
 
-  const load = useCallback(async ({ notify = false, query = search } = {}) => {
-    const requestId = ++requestRef.current;
-    setLoading(true);
-    try {
-      const response = await getPersonas({
-        buscar: query,
-        estado: status,
-        tipo: type,
-        id_localidad: localityId,
-        asociado: membership,
-        limite: 300,
-      });
-      if (requestId !== requestRef.current) return;
-      setRecords(Array.isArray(response?.items) ? response.items : []);
-      if (notify) setFeedback({ type: "success", message: "LISTADO ACTUALIZADO CORRECTAMENTE." });
-    } catch (error) {
-      if (requestId !== requestRef.current) return;
-      setFeedback({ type: "error", message: toUpperText(error?.message || "NO SE PUDO CARGAR EL PADRÓN.") });
-    } finally {
-      if (requestId === requestRef.current) setLoading(false);
-    }
-  }, [localityId, membership, search, status, type]);
+  const load = useCallback(
+    async ({ notify = false, query = search } = {}) => {
+      const requestId = ++requestRef.current;
+      setLoading(true);
+      try {
+        const response = await getPersonas({
+          buscar: query,
+          estado: status,
+          tipo: type,
+          id_localidad: localityId,
+          asociado: membership,
+          limite: 300,
+        });
+        if (requestId !== requestRef.current) return;
+        setRecords(Array.isArray(response?.items) ? response.items : []);
+        if (notify)
+          setFeedback({
+            type: "success",
+            message: "Listado actualizado correctamente.",
+          });
+      } catch (error) {
+        if (requestId !== requestRef.current) return;
+        setFeedback({
+          type: "error",
+          message: error?.message || "No se pudo cargar el padrón.",
+        });
+      } finally {
+        if (requestId === requestRef.current) setLoading(false);
+      }
+    },
+    [localityId, membership, search, status, type],
+  );
 
   useEffect(() => {
     loadCatalogs();
@@ -104,11 +129,19 @@ export default function PersonasPage() {
 
   const openCreate = () => {
     if (catalogsLoading) {
-      setFeedback({ type: "info", message: "ESPERÁ UN MOMENTO: SE ESTÁN CARGANDO LOS SELECTORES DEL SISTEMA." });
+      setFeedback({
+        type: "info",
+        message:
+          "Esperá un momento: se están cargando los selectores del sistema.",
+      });
       return;
     }
     if (!catalogs.paises.length) {
-      setFeedback({ type: "error", message: "NO SE PUEDE ABRIR EL ALTA PORQUE NO SE CARGARON LOS SELECTORES DE LA BASE DE DATOS." });
+      setFeedback({
+        type: "error",
+        message:
+          "No se puede abrir el alta porque no se cargaron los selectores de la base de datos.",
+      });
       return;
     }
     setFormErrors({});
@@ -122,7 +155,10 @@ export default function PersonasPage() {
       const detail = await getPersonaDetalle(item.id_persona);
       setModal({ mode, detail });
     } catch (error) {
-      setFeedback({ type: "error", message: toUpperText(error?.message || "NO SE PUDO ABRIR EL LEGAJO.") });
+      setFeedback({
+        type: "error",
+        message: error?.message || "No se pudo abrir el legajo.",
+      });
     } finally {
       setModalLoading(false);
     }
@@ -139,84 +175,123 @@ export default function PersonasPage() {
     setFormErrors({});
     try {
       if (modal?.mode === "create") {
-        await crearPersona(uppercaseDeep(payload));
-        setFeedback({ type: "success", message: "LA PERSONA FUE CREADA CORRECTAMENTE." });
+        await crearPersona(payload);
+        setFeedback({
+          type: "success",
+          message: "La persona fue creada correctamente.",
+        });
       } else {
-        await actualizarPersona(modal?.detail?.persona?.id_persona, uppercaseDeep(payload));
-        setFeedback({ type: "success", message: "EL LEGAJO FUE ACTUALIZADO CORRECTAMENTE." });
+        await actualizarPersona(modal?.detail?.persona?.id_persona, payload);
+        setFeedback({
+          type: "success",
+          message: "El legajo fue actualizado correctamente.",
+        });
       }
       setModal(null);
       await Promise.all([load({ query: search }), loadCatalogs()]);
     } catch (error) {
       setFormErrors(error?.fields || {});
-      setFeedback({ type: "error", message: toUpperText(error?.message || "NO SE PUDO GUARDAR EL LEGAJO.") });
+      setFeedback({
+        type: "error",
+        message: error?.message || "No se pudo guardar el legajo.",
+      });
     } finally {
       setSaving(false);
     }
   };
 
-  const toggleStatus = async (item) => {
-    const currentlyActive = isTrue(item.activo);
-    let reason = "";
-    if (currentlyActive) {
-      reason = window.prompt(`MOTIVO DE BAJA DE ${toUpperText(item.nombre_exhibicion)}:`, "") ?? "";
-      if (!reason.trim()) return;
-    } else if (!window.confirm(`¿REACTIVAR A ${toUpperText(item.nombre_exhibicion)}?`)) {
+  const openStateModal = (item) => {
+    setStateReason("");
+    setStateModal(item);
+  };
+
+  const closeStateModal = () => {
+    if (changingStatus) return;
+    setStateModal(null);
+    setStateReason("");
+  };
+
+  const confirmStatusChange = async (event) => {
+    event.preventDefault();
+    if (!stateModal || changingStatus) return;
+
+    const currentlyActive = isTrue(stateModal.activo);
+    if (currentlyActive && !stateReason.trim()) {
+      setFeedback({ type: "warning", message: "Indicá el motivo de la baja." });
       return;
     }
 
+    setChangingStatus(true);
     try {
-      await cambiarEstadoPersona(item.id_persona, !currentlyActive, toUpperText(reason.trim()));
+      await cambiarEstadoPersona(
+        stateModal.id_persona,
+        !currentlyActive,
+        stateReason.trim(),
+      );
       setFeedback({
         type: "success",
-        message: currentlyActive ? "PERSONA DADA DE BAJA CORRECTAMENTE." : "PERSONA REACTIVADA CORRECTAMENTE.",
+        message: currentlyActive
+          ? "Persona dada de baja correctamente."
+          : "Persona reactivada correctamente.",
       });
+      setStateModal(null);
+      setStateReason("");
       await load({ query: search });
     } catch (error) {
-      setFeedback({ type: "error", message: toUpperText(error?.message || "NO SE PUDO ACTUALIZAR EL ESTADO.") });
+      setFeedback({
+        type: "error",
+        message: error?.message || "No se pudo actualizar el estado.",
+      });
+    } finally {
+      setChangingStatus(false);
     }
   };
 
   const filters = [
     {
       key: "status",
-      label: "ESTADO",
+      label: "Estado",
       type: "tabs",
       value: status,
       onChange: setStatus,
-      options: GLOBAL_OPTIONS.statusFilters.filter((option) => option.value !== "TODAS"),
+      options: uiOptions(
+        GLOBAL_OPTIONS.statusFilters.filter(
+          (option) => option.value !== "TODAS",
+        ),
+      ),
     },
     {
       key: "search",
-      label: "BÚSQUEDA",
+      label: "Búsqueda",
       type: "search",
-      placeholder: "NOMBRE, DNI, CUIT O N.º DE SOCIO",
+      alwaysFloatLabel: true,
+      placeholder: "Nombre, DNI, CUIT o N.º de socio",
       value: search,
-      onChange: (value) => setSearch(toUpperText(value)),
+      onChange: setSearch,
     },
     {
       key: "type",
-      label: "TIPO",
+      label: "Tipo",
       type: "select",
-      placeholder: "TODOS",
+      placeholder: "Todos",
       value: type,
       onChange: setType,
-      options: GLOBAL_OPTIONS.personTypes,
+      options: uiOptions(GLOBAL_OPTIONS.personTypes),
     },
     {
       key: "membership",
-      label: "ASOCIACIÓN",
+      label: "Asociación",
       type: "select",
-      placeholder: "TODAS",
+      placeholder: "Todas",
       value: membership,
       onChange: setMembership,
-      options: GLOBAL_OPTIONS.membershipFilters,
+      options: uiOptions(GLOBAL_OPTIONS.membershipFilters),
     },
     {
       key: "locality",
-      label: "LOCALIDAD",
+      label: "Localidad",
       type: "select",
-      placeholder: "TODAS",
+      placeholder: "Todas",
       value: localityId,
       onChange: setLocalityId,
       options: catalogToOptions(catalogs.localidades),
@@ -229,9 +304,9 @@ export default function PersonasPage() {
         canCreate={canManage}
         filters={filters}
         onPrimaryAction={openCreate}
-        primaryActionLabel="NUEVA PERSONA"
+        primaryActionLabel="Nueva persona"
         tabsInTitle
-        title={toUpperText(moduleConfig.title || "PERSONAS Y ASOCIADOS")}
+        title={toUiLabel(moduleConfig.title || "Personas y asociados")}
       >
         <ModuleFeedback
           duration={feedback?.duration}
@@ -241,67 +316,119 @@ export default function PersonasPage() {
         />
 
         <GlobalDivTable
-          ariaLabel="LISTADO DE PERSONAS Y ASOCIADOS"
+          ariaLabel="Listado de personas y asociados"
           bodyClassName="personas-global-table__body"
           className="personas-global-table"
-          columns={["SOCIO", "PERSONA", "DOCUMENTO", "TIPO", "LOCALIDAD", "ESTADO", "ACCIONES"]}
+          columns={[
+            { label: "Socio", className: "is-center" },
+            "Persona",
+            { label: "Documento", className: "is-center" },
+            { label: "Tipo", className: "is-center" },
+            "Localidad",
+            { label: "Estado", className: "is-center" },
+            { label: "Acciones", className: "is-center" },
+          ]}
           gridClassName="personas-global-grid"
         >
           {loading && !records.length ? (
             <div className="global-table-empty">
               <GlobalIcon className="is-spinning" name="loader" size={28} />
-              <strong>CARGANDO PADRÓN...</strong>
-              <span>CONSULTANDO PERSONAS FÍSICAS, JURÍDICAS Y ASOCIADOS.</span>
+              <strong>Cargando padrón...</strong>
+              <span>Consultando personas físicas, jurídicas y asociados.</span>
             </div>
           ) : null}
 
           {!loading && !records.length ? (
             <div className="global-table-empty">
               <GlobalIcon name="inbox" size={30} />
-              <strong>NO HAY REGISTROS PARA MOSTRAR</strong>
-              <span>CREÁ LA PRIMERA PERSONA O MODIFICÁ LOS FILTROS.</span>
+              <strong>Sin personas para mostrar</strong>
+              <span>
+                Creá la primera persona o modificá los filtros aplicados.
+              </span>
             </div>
           ) : null}
 
           {records.map((item) => {
             const active = isTrue(item.activo);
             return (
-              <div className="global-div-table__row personas-global-grid" key={item.id_persona} role="row">
-                <div className="global-table-cell is-center is-strong" role="cell">
+              <div
+                className="global-div-table__row personas-global-grid"
+                key={item.id_persona}
+                role="row"
+              >
+                <div
+                  className="global-table-cell is-center is-strong"
+                  role="cell"
+                >
                   {item.id_asociado ? `#${item.id_asociado}` : "—"}
                 </div>
-                <div className="global-table-cell global-table-cell--main" role="cell">
-                  <strong>{toUpperText(item.nombre_exhibicion)}</strong>
-                  <small>{item.id_asociado ? `${toUpperText(item.categoria || "SIN CATEGORÍA")} · ${toUpperText(item.estado_asociado)}` : "PERSONA NO ASOCIADA"}</small>
+                <div
+                  className="global-table-cell global-table-cell--main"
+                  role="cell"
+                >
+                  <strong>{item.nombre_exhibicion}</strong>
+                  <small>
+                    {item.id_asociado
+                      ? `${item.categoria || "Sin categoría"} · ${toUiLabel(item.estado_asociado)}`
+                      : "Persona no asociada"}
+                  </small>
                 </div>
-                <div className="global-table-cell is-center is-strong" role="cell">
+                <div
+                  className="global-table-cell is-center is-strong"
+                  role="cell"
+                >
                   {item.dni || item.cuit_cuil || "—"}
                 </div>
-                <div className="global-table-cell is-center" role="cell">{typeLabel(item.tipo_persona)}</div>
-                <div className="global-table-cell global-table-cell--main" role="cell">
-                  <span>{toUpperText(item.localidad || "—")}</span>
-                  {item.provincia ? <small>{toUpperText(item.provincia)}</small> : null}
+                <div className="global-table-cell is-center" role="cell">
+                  {typeLabel(item.tipo_persona)}
+                </div>
+                <div
+                  className="global-table-cell global-table-cell--main"
+                  role="cell"
+                >
+                  <span>{item.localidad || "—"}</span>
+                  {item.provincia ? <small>{item.provincia}</small> : null}
                 </div>
                 <div className="global-table-cell is-center" role="cell">
-                  <span className={`global-chip ${active ? "is-success" : "is-danger"}`}>{active ? "ACTIVA" : "BAJA"}</span>
+                  <span
+                    className={`global-chip ${active ? "is-success" : "is-danger"}`}
+                  >
+                    {active ? "ACTIVA" : "BAJA"}
+                  </span>
                 </div>
-                <div className="global-table-cell global-table-cell--actions" role="cell">
+                <div
+                  className="global-table-cell global-table-cell--actions"
+                  role="cell"
+                >
                   <div className="global-table-actions">
-                    <button className="global-icon-button" onClick={() => openExisting(item, "view")} title="VER FICHA" type="button">
+                    <button
+                      className="global-icon-button"
+                      onClick={() => openExisting(item, "view")}
+                      title="Ver ficha"
+                      type="button"
+                    >
                       <GlobalIcon name="eye" size={15} />
                     </button>
                     {canManage ? (
                       <>
-                        <button className="global-icon-button" onClick={() => openExisting(item, "edit")} title="EDITAR" type="button">
+                        <button
+                          className="global-icon-button"
+                          onClick={() => openExisting(item, "edit")}
+                          title="Editar"
+                          type="button"
+                        >
                           <GlobalIcon name="edit" size={15} />
                         </button>
                         <button
                           className={`global-icon-button ${active ? "is-danger" : "is-success"}`}
-                          onClick={() => toggleStatus(item)}
-                          title={active ? "DAR DE BAJA" : "REACTIVAR"}
+                          onClick={() => openStateModal(item)}
+                          title={active ? "Dar de baja" : "Reactivar"}
                           type="button"
                         >
-                          <GlobalIcon name={active ? "disable" : "enable"} size={16} />
+                          <GlobalIcon
+                            name={active ? "disable" : "enable"}
+                            size={16}
+                          />
                         </button>
                       </>
                     ) : null}
@@ -314,10 +441,10 @@ export default function PersonasPage() {
       </ModulePage>
 
       {modalLoading ? (
-        <div className="persona-modal-backdrop">
+        <div className="entity-modal-overlay">
           <div className="persona-modal-loading">
             <GlobalIcon className="is-spinning" name="loader" size={28} />
-            <span>CARGANDO LEGAJO...</span>
+            <span>Cargando legajo...</span>
           </div>
         </div>
       ) : null}
@@ -333,6 +460,74 @@ export default function PersonasPage() {
           saving={saving}
         />
       ) : null}
+
+      <CrudModal
+        danger={isTrue(stateModal?.activo)}
+        modalClassName="persona-state-modal"
+        onClose={closeStateModal}
+        onSubmit={confirmStatusChange}
+        open={Boolean(stateModal)}
+        saving={changingStatus}
+        savingLabel={
+          isTrue(stateModal?.activo) ? "Dando de baja..." : "Reactivando..."
+        }
+        submitDisabled={isTrue(stateModal?.activo) && !stateReason.trim()}
+        submitLabel={isTrue(stateModal?.activo) ? "Dar de baja" : "Reactivar"}
+        subtitle={
+          isTrue(stateModal?.activo)
+            ? "La persona dejará de figurar como activa, pero se conservarán sus datos y vínculos."
+            : "La persona volverá a estar disponible para nuevas operaciones."
+        }
+        title={
+          isTrue(stateModal?.activo)
+            ? "Dar de baja a la persona"
+            : "Reactivar persona"
+        }
+      >
+        <div
+          className={`persona-state-confirm ${isTrue(stateModal?.activo) ? "is-danger" : "is-success"}`}
+        >
+          <span className="persona-state-confirm__icon">
+            <GlobalIcon
+              name={isTrue(stateModal?.activo) ? "warning" : "check"}
+              size={24}
+            />
+          </span>
+          <p>
+            {isTrue(stateModal?.activo)
+              ? "Confirmá la baja e indicá el motivo para dejar registro de la operación."
+              : "Confirmá que querés reactivar este registro."}
+          </p>
+          <dl className="persona-state-confirm__details">
+            <div>
+              <dt>Persona</dt>
+              <dd>{stateModal?.nombre_exhibicion || "—"}</dd>
+            </div>
+            <div>
+              <dt>Documento</dt>
+              <dd>{stateModal?.dni || stateModal?.cuit_cuil || "—"}</dd>
+            </div>
+            <div>
+              <dt>Estado actual</dt>
+              <dd>{isTrue(stateModal?.activo) ? "ACTIVA" : "BAJA"}</dd>
+            </div>
+          </dl>
+          {isTrue(stateModal?.activo) ? (
+            <label
+              className={`entity-field is-textarea ${stateReason ? "is-active" : ""}`.trim()}
+            >
+              <textarea
+                autoFocus
+                onChange={(event) => setStateReason(event.target.value)}
+                placeholder=" "
+                rows="3"
+                value={stateReason}
+              />
+              <span>Motivo de baja *</span>
+            </label>
+          ) : null}
+        </div>
+      </CrudModal>
     </>
   );
 }

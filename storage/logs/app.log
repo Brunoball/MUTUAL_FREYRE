@@ -112,3 +112,27 @@
 #3 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '9144e79c57afe2e...')
 #4 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\USER\\D...')
 #5 {main}
+[2026-07-22T21:26:00-03:00] [ac6a4463e34d61ca28104e70] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'mutual_freyre.sis_login_intentos' doesn't exist
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthRepository.php(58): PDO->prepare('SELECT COUNT(*)...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthService.php(46): App\Modules\Auth\AuthRepository->recentFailureCount('bruno', 15)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthController.php(16): App\Modules\Auth\AuthService->login(Array, 'ac6a4463e34d61c...')
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Auth\AuthController->login(Object(App\Core\Request), NULL, 'ac6a4463e34d61c...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), 'ac6a4463e34d61c...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-22T21:26:02-03:00] [1cbf6d2d0d33bad5ff054892] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'mutual_freyre.sis_login_intentos' doesn't exist
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthRepository.php(58): PDO->prepare('SELECT COUNT(*)...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthService.php(46): App\Modules\Auth\AuthRepository->recentFailureCount('bruno', 15)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthController.php(16): App\Modules\Auth\AuthService->login(Array, '1cbf6d2d0d33bad...')
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Auth\AuthController->login(Object(App\Core\Request), NULL, '1cbf6d2d0d33bad...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '1cbf6d2d0d33bad...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}
+[2026-07-22T21:28:40-03:00] [be9ec78f9987afa820ba043d] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'mutual_freyre.sis_login_intentos' doesn't exist
+#0 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthRepository.php(58): PDO->prepare('SELECT COUNT(*)...')
+#1 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthService.php(46): App\Modules\Auth\AuthRepository->recentFailureCount('bruno', 15)
+#2 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthController.php(16): App\Modules\Auth\AuthService->login(Array, 'be9ec78f9987afa...')
+#3 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\app\Core\Router.php(35): App\Modules\Auth\AuthController->login(Object(App\Core\Request), NULL, 'be9ec78f9987afa...')
+#4 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), 'be9ec78f9987afa...')
+#5 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
+#6 {main}

@@ -38,7 +38,10 @@ function ModuleTitleTabs({ filter }) {
 
 function ModuleFilter({ filter }) {
   const value = filter.value ?? "";
-  const active = filter.type !== "search" || String(value).trim() !== "";
+  const active =
+    filter.type !== "search" ||
+    filter.alwaysFloatLabel === true ||
+    String(value).trim() !== "";
 
   return (
     <label

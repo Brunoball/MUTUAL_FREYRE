@@ -10,6 +10,7 @@ import "./AppLayout.css";
 
 export default function AppLayout() {
   const [open, setOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${sidebarExpanded ? "is-sidebar-expanded" : ""}`}>
       <header className="topbar">
         <div className="topbar__left">
           <button className="icon-button topbar__menu" type="button" onClick={() => setOpen(true)} aria-label="Abrir menú">
@@ -88,7 +89,11 @@ export default function AppLayout() {
       <div className={`sidebar-overlay ${open ? "is-open" : ""}`} onClick={() => setOpen(false)} />
       <aside
         className={`sidebar ${open ? "is-open" : ""}`}
-        onMouseLeave={() => setOpen(false)}
+        onMouseEnter={() => setSidebarExpanded(true)}
+        onMouseLeave={() => {
+          setSidebarExpanded(false);
+          setOpen(false);
+        }}
       >
         <div className="sidebar__header">
           <button
