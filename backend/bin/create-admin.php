@@ -19,13 +19,13 @@ if (strlen($password) < 12) {
 $algorithm = defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_DEFAULT;
 $hash = password_hash($password, $algorithm);
 $db = Connection::get();
-$roleId = $db->query("SELECT id_rol FROM roles WHERE codigo = 'admin' LIMIT 1")->fetchColumn();
+$roleId = $db->query("SELECT id_rol FROM sis_roles WHERE codigo = 'admin' LIMIT 1")->fetchColumn();
 if (!$roleId) {
-    fwrite(STDERR, "Primero ejecutá database/migrations/001_fundacion.sql.\n");
+    fwrite(STDERR, "Primero importá la base mutual.sql.\n");
     exit(1);
 }
 $statement = $db->prepare(
-    'INSERT INTO usuarios (id_rol, usuario, nombre, hash_contrasena, activo, creado_en, actualizado_en)
+    'INSERT INTO sis_usuarios (id_rol, usuario, nombre, hash_contrasena, activo, creado_en, actualizado_en)
      VALUES (:rol, :usuario, :nombre, :hash, 1, NOW(), NOW())
      ON DUPLICATE KEY UPDATE nombre = VALUES(nombre), hash_contrasena = VALUES(hash_contrasena), id_rol = VALUES(id_rol), activo = 1, actualizado_en = NOW()'
 );

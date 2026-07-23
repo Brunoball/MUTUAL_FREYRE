@@ -19,7 +19,7 @@ final class AuditLogger
         ?string $correlationId = null
     ): void {
         $statement = Connection::get()->prepare(
-            'INSERT INTO auditoria_eventos
+            'INSERT INTO sis_auditoria_eventos
             (id_usuario, modulo, accion, entidad, id_entidad, resultado, metadata, ip, user_agent, correlation_id, creado_en)
             VALUES (:usuario, :modulo, :accion, :entidad, :id_entidad, :resultado, :metadata, :ip, :user_agent, :correlation_id, NOW())'
         );
