@@ -98,3 +98,17 @@
 #6 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '1e5c60020d5c70f...')
 #7 C:\Users\villa\OneDrive\Desktop\Sistem3devs\pFreyre\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\villa\\...')
 #8 {main}
+[2026-07-22T20:30:04-03:00] [cb729a67043492d4faf13bfe] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'mutual_freyre.sesiones' doesn't exist
+#0 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthRepository.php(134): PDO->prepare('SELECT s.id_ses...')
+#1 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthService.php(148): App\Modules\Auth\AuthRepository->findActiveSession('e14b71afe32eff6...')
+#2 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\app\Core\Router.php(29): App\Modules\Auth\AuthService->authenticate(Object(App\Core\Request))
+#3 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), 'cb729a67043492d...')
+#4 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\USER\\D...')
+#5 {main}
+[2026-07-22T20:30:20-03:00] [9144e79c57afe2e45d7fe4f3] SQLSTATE[42S02]: Base table or view not found: 1146 Table 'mutual_freyre.sesiones' doesn't exist
+#0 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthRepository.php(134): PDO->prepare('SELECT s.id_ses...')
+#1 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\app\Modules\Auth\AuthService.php(148): App\Modules\Auth\AuthRepository->findActiveSession('e14b71afe32eff6...')
+#2 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\app\Core\Router.php(29): App\Modules\Auth\AuthService->authenticate(Object(App\Core\Request))
+#3 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\public\index.php(41): App\Core\Router->dispatch(Object(App\Core\Request), '9144e79c57afe2e...')
+#4 C:\Users\USER\Desktop\MUTUAL_FREYRE\backend\index.php(5): require('C:\\Users\\USER\\D...')
+#5 {main}

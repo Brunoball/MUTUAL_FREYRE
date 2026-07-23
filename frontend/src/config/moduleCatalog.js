@@ -1,21 +1,21 @@
 export const MODULE_CATALOG = {
   personas: {
-    title: "Personas y asociados",
-    eyebrow: "Legajo integral",
-    description: "Base única para personas físicas, jurídicas, socios y todos sus vínculos operativos y regulatorios.",
+    title: "PERSONAS Y ASOCIADOS",
+    eyebrow: "PADRÓN Y LEGAJOS",
+    description: "ALTA Y CONSULTA DE PERSONAS FÍSICAS, PERSONAS JURÍDICAS, ASOCIADOS, AUTORIZADOS Y BENEFICIARIOS FINALES.",
     permission: "personas.view",
-    status: "Estructura inicial",
+    status: "OPERATIVO",
     sections: [
-      "Personas físicas y jurídicas",
-      "Alta y legajo de asociados",
-      "Autorizados, apoderados y garantes",
-      "Beneficiarios finales y representantes",
-      "Documentación y datos de cumplimiento",
+      "DATOS COMUNES",
+      "PERSONAS FÍSICAS Y JURÍDICAS",
+      "DATOS FINANCIEROS Y ASOCIACIÓN",
+      "PERSONAS AUTORIZADAS",
+      "BENEFICIARIOS FINALES DE PERSONAS JURÍDICAS",
     ],
     rules: [
-      "Persona y socio son conceptos separados.",
-      "Las bajas serán lógicas y los cambios importantes quedarán auditados.",
-      "Los documentos se almacenarán fuera del directorio público.",
+      "UNA PERSONA PUEDE EXISTIR SIN SER ASOCIADA.",
+      "EL NÚMERO DE SOCIO ES EL ID AUTOINCREMENTAL DE LA ASOCIACIÓN.",
+      "AUTORIZADOS Y BENEFICIARIOS DEBEN REGISTRARSE PREVIAMENTE COMO PERSONAS.",
     ],
   },
   ayudas: {
