@@ -1,18 +1,737 @@
-.personas-global-grid { grid-template-columns: minmax(0,1.45fr) minmax(0,.72fr) minmax(0,1.08fr) minmax(0,1.1fr) minmax(0,.72fr) minmax(0,.68fr) minmax(0,.62fr) minmax(0,.7fr); width: 100%; min-width: 0; }
-.personas-global-table, .personas-global-table__body { min-width: 0; max-width: 100%; }
-.personas-global-grid > :nth-child(2), .personas-global-grid > :nth-child(6), .personas-global-grid > :nth-child(7), .personas-global-grid > :nth-child(8) { justify-content: center; text-align: center; }
-
-@media (max-width: 1180px) {
-  .personas-global-grid { grid-template-columns: minmax(0,1.4fr) minmax(0,.72fr) minmax(0,1.05fr) minmax(0,1.05fr) minmax(0,.7fr) minmax(0,.62fr) minmax(0,.7fr); }
-  .personas-global-grid > :nth-child(6) { display: none; }
+/* Tabla de Personas: información operativa, jerarquía clara y acciones compactas. */
+.personas-global-grid {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns:
+    minmax(175px, 1.48fr)
+    minmax(108px, 0.82fr)
+    minmax(165px, 1.22fr)
+    minmax(185px, 1.35fr)
+    minmax(170px, 1.2fr)
+    minmax(125px, 0.88fr)
+    minmax(112px, 0.7fr);
 }
 
-@media (max-width: 900px) {
-  .personas-global-grid { grid-template-columns: minmax(0,1.35fr) minmax(0,.72fr) minmax(0,1fr) minmax(0,.72fr) minmax(0,.62fr) minmax(0,.7fr); }
-  .personas-global-grid > :nth-child(4), .personas-global-grid > :nth-child(6) { display: none; }
+.personas-global-table,
+.personas-global-table .personas-global-table__body {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.personas-global-table .personas-global-table__body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.personas-table-row .global-table-cell {
+  min-height: 74px;
+  padding-block: 10px;
+}
+
+.personas-table-row:hover .personas-person-cell > strong {
+  color: var(--global-ui-action);
+}
+
+.personas-person-cell > strong {
+  font-size: 13px;
+  letter-spacing: 0.005em;
+  transition: color var(--global-ui-transition);
+}
+
+.personas-table-meta {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--global-ui-action) 18%, white);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--global-ui-action) 5%, white);
+  color: color-mix(in srgb, var(--global-ui-action) 82%, var(--navy-900));
+  font-size: 9.5px;
+  font-weight: 760;
+  letter-spacing: 0.045em;
+  line-height: 1.35;
+}
+
+.personas-document-cell,
+.personas-date-cell {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.personas-document-cell strong,
+.personas-date-cell strong {
+  color: var(--navy-900);
+  font-size: 12.5px;
+  font-weight: 720;
+}
+
+.personas-document-cell small,
+.personas-date-cell small {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--global-ui-muted);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personas-table-line {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.personas-contact-cell > span,
+.personas-location-cell > span {
+  font-size: 11.5px;
+  font-weight: 610;
+}
+
+.personas-contact-cell > small,
+.personas-location-cell > small,
+.personas-membership-cell > small {
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personas-membership-chip {
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border: 1px solid var(--global-ui-border);
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 780;
+  letter-spacing: 0.045em;
+  line-height: 1.35;
+}
+
+.personas-membership-chip.is-associated {
+  border-color: color-mix(in srgb, var(--global-ui-success) 28%, white);
+  background: color-mix(in srgb, var(--global-ui-success) 8%, white);
+  color: var(--global-ui-success);
+}
+
+.personas-membership-chip.is-unassociated {
+  border-color: color-mix(in srgb, var(--global-ui-muted) 24%, white);
+  background: color-mix(in srgb, var(--global-ui-muted) 5%, white);
+  color: var(--global-ui-muted);
+}
+
+.personas-global-grid .global-table-actions {
+  max-width: 100%;
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.persona-action-button {
+  width: 26px;
+  height: 24px;
+  display: inline-grid;
+  min-width: 26px;
+  min-height: 24px;
+  flex: 0 0 26px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--navy-900) 14%, white);
+  border-radius: 8px;
+  background: white;
+  color: color-mix(in srgb, var(--navy-900) 72%, white);
+  cursor: pointer;
+  transition:
+    transform var(--global-ui-transition),
+    border-color var(--global-ui-transition),
+    background var(--global-ui-transition),
+    color var(--global-ui-transition),
+    box-shadow var(--global-ui-transition);
+}
+
+.persona-action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 15px -11px rgba(7, 23, 42, 0.75);
+}
+
+.persona-action-button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--global-ui-action) 14%, transparent);
+}
+
+.persona-action-button.is-info,
+.persona-action-button.is-edit {
+  border-color: color-mix(in srgb, var(--global-ui-action) 24%, white);
+  color: var(--global-ui-action);
+}
+
+.persona-action-button.is-info:hover,
+.persona-action-button.is-edit:hover {
+  background: color-mix(in srgb, var(--global-ui-action) 7%, white);
+}
+
+.persona-action-button.is-warning {
+  color: color-mix(in srgb, var(--navy-900) 76%, black);
+}
+
+.persona-action-button.is-warning:hover {
+  border-color: color-mix(in srgb, var(--gold-500) 34%, white);
+  background: color-mix(in srgb, var(--gold-500) 9%, white);
+  color: color-mix(in srgb, var(--gold-500) 70%, var(--navy-900));
+}
+
+.persona-action-button.is-success {
+  border-color: color-mix(in srgb, var(--global-ui-success) 30%, white);
+  color: var(--global-ui-success);
+}
+
+.persona-action-button.is-success:hover {
+  background: color-mix(in srgb, var(--global-ui-success) 8%, white);
+}
+
+/* Modal y secciones: adapta la base global al contenido amplio de Personas. */
+.personas-modal--form.entity-modal {
+  width: min(1080px, 100%);
+}
+
+.personas-modal--form .entity-modal__body {
+  padding: 14px 20px 18px;
+  background: linear-gradient(180deg, white 0%, var(--surface-soft) 100%);
+}
+
+.personas-modal__form {
+  gap: 0;
+}
+
+.personas-modal__content {
+  min-width: 0;
+}
+
+.persona-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px 14px;
+}
+
+.persona-type-selector {
+  width: fit-content;
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 4px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.persona-type-selector button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--entity-modal-text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    color var(--entity-modal-transition),
+    background var(--entity-modal-transition),
+    box-shadow var(--entity-modal-transition);
+}
+
+.persona-type-selector button:hover:not(:disabled) {
+  color: var(--entity-modal-action);
+}
+
+.persona-type-selector button.is-active {
+  background: white;
+  color: var(--entity-modal-action);
+  box-shadow: 0 5px 14px -11px rgba(7, 23, 42, 0.75);
+}
+
+.persona-type-selector button:disabled {
+  cursor: default;
+}
+
+.persona-checks,
+.persona-operation-grid {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.persona-checks.is-wide,
+.persona-operation-grid.is-wide {
+  grid-column: 1 / -1;
+}
+
+.persona-operation-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 12px 14px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-soft) 70%, white);
+}
+
+.persona-check {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 10px;
+  background: white;
+  color: var(--entity-modal-text);
+  font-size: 12px;
+  font-weight: 580;
+  cursor: pointer;
+  transition:
+    transform var(--entity-modal-transition),
+    color var(--entity-modal-transition),
+    border-color var(--entity-modal-transition),
+    background var(--entity-modal-transition),
+    box-shadow var(--entity-modal-transition);
+}
+
+.persona-check:hover:not(:has(input:disabled)) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--entity-modal-action) 34%, white);
+}
+
+.persona-check.is-selected {
+  border-color: color-mix(in srgb, var(--entity-modal-action) 44%, white);
+  background: color-mix(in srgb, var(--entity-modal-action) 8%, white);
+  color: var(--entity-modal-action);
+  box-shadow: 0 8px 20px -18px var(--entity-modal-action);
+}
+
+.persona-check:has(input:disabled) {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.persona-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  display: grid;
+  place-content: center;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1.5px solid color-mix(in srgb, var(--entity-modal-text) 45%, white);
+  border-radius: 5px;
+  background: white;
+  cursor: inherit;
+  transition:
+    border-color var(--entity-modal-transition),
+    background var(--entity-modal-transition),
+    box-shadow var(--entity-modal-transition);
+}
+
+.persona-check input[type="checkbox"]::before {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: translateY(-1px) rotate(45deg) scale(0);
+  transform-origin: center;
+  transition: transform var(--entity-modal-transition);
+}
+
+.persona-check input[type="checkbox"]:checked {
+  border-color: var(--entity-modal-action);
+  background: var(--entity-modal-action);
+}
+
+.persona-check input[type="checkbox"]:checked::before {
+  transform: translateY(-1px) rotate(45deg) scale(1);
+}
+
+.persona-check input[type="checkbox"]:focus-visible {
+  outline: 0;
+  box-shadow: var(--entity-modal-focus);
+}
+
+.persona-associate-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.persona-associate-panel > .persona-check {
+  width: fit-content;
+}
+
+.persona-empty-block {
+  padding: 19px;
+  border: 1px dashed color-mix(in srgb, var(--entity-modal-action) 30%, white);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--entity-modal-action) 4%, white);
+  color: var(--entity-modal-text);
+  font-size: 12.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.persona-repeater {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.persona-repeater__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.persona-repeater-card {
+  padding: 15px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 8px 24px -22px rgba(7, 23, 42, 0.55);
+}
+
+.persona-repeater-card__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+  color: var(--entity-modal-ink);
+  font-size: 13px;
+}
+
+.persona-repeater-card__title button {
+  width: 30px;
+  height: 30px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--entity-modal-danger) 26%, white);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--entity-modal-danger) 6%, white);
+  color: var(--entity-modal-danger);
+  cursor: pointer;
+}
+
+.persona-form-error {
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--entity-modal-danger) 28%, white);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--entity-modal-danger) 7%, white);
+  color: var(--entity-modal-danger);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.persona-modal-loading {
+  min-width: 230px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 20px 60px rgba(1, 15, 32, 0.25);
+  color: var(--navy-900);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Contenido específico de Personas dentro del modal global de baja. */
+.persona-state-global-modal {
+  width: min(690px, 100%);
+}
+
+.persona-state-extra {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.persona-state-date {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  color: var(--global-ui-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.persona-state-date input {
+  width: 100%;
+  height: 42px;
+  padding: 0 11px;
+  outline: 0;
+  border: 1px solid
+    color-mix(in srgb, var(--navy-900) 16%, var(--global-ui-border));
+  border-radius: 11px;
+  background: white;
+  color: var(--global-ui-text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color var(--global-ui-transition),
+    box-shadow var(--global-ui-transition);
+}
+
+.persona-state-date input:focus {
+  border-color: var(--global-ui-action);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--global-ui-action) 13%, transparent);
+}
+
+@media (max-width: 1280px) {
+  .personas-global-grid {
+    grid-template-columns:
+      minmax(160px, 1.38fr)
+      minmax(102px, 0.8fr)
+      minmax(145px, 1.1fr)
+      minmax(155px, 1.18fr)
+      minmax(145px, 1.08fr)
+      minmax(112px, 0.82fr)
+      minmax(108px, 0.68fr);
+  }
+
+  .personas-table-row .global-table-cell,
+  .personas-global-table .global-div-table__head-cell {
+    padding-inline: 8px;
+  }
 }
 
 @media (max-width: 720px) {
-  .personas-global-grid { grid-template-columns: minmax(0,1.35fr) minmax(0,.72fr) minmax(0,.62fr) minmax(0,.7fr); }
-  .personas-global-grid > :nth-child(3), .personas-global-grid > :nth-child(4), .personas-global-grid > :nth-child(5), .personas-global-grid > :nth-child(6) { display: none; }
+  .personas-modal--form .entity-modal__body {
+    padding: 10px 13px 14px;
+  }
+
+  .persona-form-grid,
+  .persona-operation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .persona-form-grid .entity-field--wide,
+  .persona-checks.is-wide,
+  .persona-operation-grid.is-wide {
+    grid-column: auto;
+  }
+
+  .persona-type-selector {
+    width: 100%;
+  }
+
+  .persona-type-selector button {
+    flex: 1;
+  }
+
+  .persona-repeater__actions .global-button {
+    width: 100%;
+  }
+}
+
+/* Control de vínculos antes de una baja: informa el impacto y exige confirmación. */
+.persona-link-impact {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 12px;
+  background: white;
+  text-align: left;
+}
+
+.persona-link-impact.has-links {
+  border-color: color-mix(in srgb, var(--global-ui-danger) 27%, white);
+  background: color-mix(in srgb, var(--global-ui-danger) 4%, white);
+}
+
+.persona-link-impact.is-clear {
+  border-color: color-mix(in srgb, var(--global-ui-success) 25%, white);
+  background: color-mix(in srgb, var(--global-ui-success) 4%, white);
+}
+
+.persona-link-impact.is-loading {
+  background: color-mix(in srgb, var(--global-ui-action) 4%, white);
+}
+
+.persona-link-impact__status {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  color: var(--global-ui-action);
+}
+
+.persona-link-impact.has-links .persona-link-impact__status {
+  color: var(--global-ui-danger);
+}
+
+.persona-link-impact.is-clear .persona-link-impact__status {
+  color: var(--global-ui-success);
+}
+
+.persona-link-impact__status > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.persona-link-impact__status strong {
+  color: var(--entity-modal-ink);
+  font-size: 12.5px;
+  font-weight: 760;
+}
+
+.persona-link-impact__status span {
+  color: var(--entity-modal-text);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.persona-link-impact__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding-left: 33px;
+}
+
+.persona-link-impact__summary span {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--global-ui-danger) 16%, white);
+  border-radius: 999px;
+  background: white;
+  color: var(--entity-modal-text);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.persona-link-impact__list {
+  max-height: 172px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 10px;
+  background: white;
+  list-style: none;
+}
+
+.persona-link-impact__list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--entity-modal-border);
+}
+
+.persona-link-impact__list li:last-child {
+  border-bottom: 0;
+}
+
+.persona-link-impact__list li > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.persona-link-impact__list strong,
+.persona-link-impact__list span,
+.persona-link-impact__list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.persona-link-impact__list strong {
+  color: var(--entity-modal-ink);
+  font-size: 11.5px;
+  font-weight: 730;
+}
+
+.persona-link-impact__list span,
+.persona-link-impact__list small {
+  color: var(--entity-modal-text);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.persona-link-impact__list small {
+  max-width: 230px;
+  text-align: right;
+}
+
+.persona-link-impact__confirmation {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--global-ui-danger) 22%, white);
+  border-radius: 10px;
+  background: white;
+  color: var(--entity-modal-ink);
+  cursor: pointer;
+  font-size: 11.5px;
+  font-weight: 680;
+  line-height: 1.42;
+}
+
+.persona-link-impact__confirmation input {
+  width: 16px;
+  height: 16px;
+  margin: 1px 0 0;
+  accent-color: var(--global-ui-danger);
+}
+
+@media (max-width: 720px) {
+  .persona-link-impact__summary {
+    padding-left: 0;
+  }
+
+  .persona-link-impact__list li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .persona-link-impact__list small {
+    max-width: 100%;
+    text-align: left;
+  }
+}
+
+.persona-aid-impact {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #991b1b;
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.persona-aid-impact .persona-link-impact__status svg {
+  color: #dc2626;
+}
+
+.persona-aid-impact .persona-link-impact__list li {
+  background: rgba(255, 255, 255, .75);
+  border-color: #fecaca;
 }
