@@ -10,7 +10,11 @@ export const addMonths = (dateValue, months = 1) => {
     .split("-")
     .map(Number);
   const source = new Date(year, month - 1 + months, 1);
-  const lastDay = new Date(source.getFullYear(), source.getMonth() + 1, 0).getDate();
+  const lastDay = new Date(
+    source.getFullYear(),
+    source.getMonth() + 1,
+    0,
+  ).getDate();
   source.setDate(Math.min(day || 1, lastDay));
   return localDateValue(source);
 };

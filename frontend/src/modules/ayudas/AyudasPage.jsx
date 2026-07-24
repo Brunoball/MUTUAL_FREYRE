@@ -1,6 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useAuth } from "../../app/AuthProvider";
 import { MODULE_CATALOG } from "../../config/moduleCatalog";
+import GlobalActionIcon from "../../Global/components/GlobalActionIcon";
 import GlobalDivTable from "../../Global/components/GlobalDivTable";
 import GlobalIcon from "../../Global/components/GlobalIcon";
 import ModuleFeedback from "../../Global/components/ModuleFeedback";
@@ -10,11 +17,7 @@ import AyudaDetalleModal from "./AyudaDetalleModal";
 import AyudaModal from "./AyudaModal";
 import AyudaParametrosModal from "./AyudaParametrosModal";
 import AyudaRenovacionModal from "./AyudaRenovacionModal";
-import {
-  getAyudaDetalle,
-  getAyudas,
-  getAyudasCatalogos,
-} from "./ayudas.api";
+import { getAyudaDetalle, getAyudas, getAyudasCatalogos } from "./ayudas.api";
 import {
   aidNumber,
   formatDate,
@@ -33,7 +36,11 @@ export default function AyudasPage() {
   const searchTimerRef = useRef(null);
 
   const [records, setRecords] = useState([]);
-  const [catalogs, setCatalogs] = useState({ productos: [], socios: [], garantes: [] });
+  const [catalogs, setCatalogs] = useState({
+    productos: [],
+    socios: [],
+    garantes: [],
+  });
   const [loading, setLoading] = useState(true);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [feedback, setFeedback] = useState(null);
@@ -54,32 +61,42 @@ export default function AyudasPage() {
       const response = await getAyudasCatalogos();
       setCatalogs(response || { productos: [], socios: [], garantes: [] });
     } catch (error) {
-      setFeedback({ type: "error", message: error?.message || "No se pudieron cargar los selectores de ayudas." });
+      setFeedback({
+        type: "error",
+        message:
+          error?.message || "No se pudieron cargar los selectores de ayudas.",
+      });
     } finally {
       setCatalogLoading(false);
     }
   }, []);
 
-  const load = useCallback(async ({ notify = false, query = search } = {}) => {
-    const requestId = ++requestRef.current;
-    setLoading(true);
-    try {
-      const response = await getAyudas({
-        buscar: query,
-        estado: status,
-        tipo: type,
-        limite: 400,
-      });
-      if (requestId !== requestRef.current) return;
-      setRecords(Array.isArray(response?.items) ? response.items : []);
-      if (notify) setFeedback({ type: "success", message: "Listado actualizado correctamente." });
-    } catch (error) {
-      if (requestId !== requestRef.current) return;
-      setFeedback({ type: "error", message: error?.message || "No se pudieron cargar las ayudas económicas." });
-    } finally {
-      if (requestId === requestRef.current) setLoading(false);
-    }
-  }, [search, status, type]);
+  const load = useCallback(
+    async ({ query = search } = {}) => {
+      const requestId = ++requestRef.current;
+      setLoading(true);
+      try {
+        const response = await getAyudas({
+          buscar: query,
+          estado: status,
+          tipo: type,
+          limite: 400,
+        });
+        if (requestId !== requestRef.current) return;
+        setRecords(Array.isArray(response?.items) ? response.items : []);
+      } catch (error) {
+        if (requestId !== requestRef.current) return;
+        setFeedback({
+          type: "error",
+          message:
+            error?.message || "No se pudieron cargar las ayudas económicas.",
+        });
+      } finally {
+        if (requestId === requestRef.current) setLoading(false);
+      }
+    },
+    [search, status, type],
+  );
 
   useEffect(() => {
     loadCatalogs();
@@ -93,11 +110,18 @@ export default function AyudasPage() {
 
   const openCreate = () => {
     if (catalogLoading) {
-      setFeedback({ type: "info", message: "Esperá un momento: se están cargando socios, tasas y parámetros." });
+      setFeedback({
+        type: "info",
+        message:
+          "Esperá un momento: se están cargando socios, tasas y parámetros.",
+      });
       return;
     }
     if (!catalogs.socios?.length) {
-      setFeedback({ type: "warning", message: "No hay socios activos disponibles para liquidar una ayuda." });
+      setFeedback({
+        type: "warning",
+        message: "No hay socios activos disponibles para liquidar una ayuda.",
+      });
       return;
     }
     setCreateOpen(true);
@@ -109,7 +133,10 @@ export default function AyudasPage() {
       const response = await getAyudaDetalle(item.id_ayuda);
       setDetail(response);
     } catch (error) {
-      setFeedback({ type: "error", message: error?.message || "No se pudo abrir la ayuda." });
+      setFeedback({
+        type: "error",
+        message: error?.message || "No se pudo abrir la ayuda.",
+      });
     } finally {
       setOpeningDetail(false);
     }
@@ -153,7 +180,11 @@ export default function AyudasPage() {
   };
 
   const typeOptions = useMemo(
-    () => (catalogs.productos || []).map((item) => ({ value: item.codigo, label: `${item.codigo} · ${item.nombre}` })),
+    () =>
+      (catalogs.productos || []).map((item) => ({
+        value: item.codigo,
+        label: `${item.codigo} · ${item.nombre}`,
+      })),
     [catalogs.productos],
   );
 
@@ -172,9 +203,10 @@ export default function AyudasPage() {
     },
     {
       key: "search",
-      label: "Buscar por ayuda, socio, nombre o documento",
+      label: "Búsqueda",
       type: "search",
-      placeholder: " ",
+      alwaysFloatLabel: true,
+      placeholder: "Buscar por ayuda, socio, nombre o documento",
       value: search,
       onChange: setSearch,
       className: "ayudas-search-filter",
@@ -191,24 +223,23 @@ export default function AyudasPage() {
   ];
 
   const secondaryActions = canManage
-    ? [{
-        key: "parameters",
-        label: "Tasas y dólar",
-        icon: "edit",
-        onClick: () => setParametersOpen(true),
-      }]
+    ? [
+        {
+          key: "parameters",
+          label: "Tasas y dólar",
+          icon: "edit",
+          onClick: () => setParametersOpen(true),
+        },
+      ]
     : [];
 
   return (
     <>
       <ModulePage
         canCreate={canManage}
-        description={moduleConfig.description}
         filters={filters}
         onPrimaryAction={openCreate}
-        onRefresh={() => Promise.all([load({ notify: true, query: search }), loadCatalogs()])}
         primaryActionLabel="Nueva ayuda"
-        refreshing={loading && records.length > 0}
         secondaryActions={secondaryActions}
         tabsInTitle
         title={moduleConfig.title || "Ayudas económicas"}
@@ -220,18 +251,21 @@ export default function AyudasPage() {
           type={feedback?.type}
         />
 
-        <div className="ayudas-module-note">
-          <GlobalIcon name="info" size={18} />
-          <span>
-            Tipos implementados: A compra de cheques; B renovable a 30/60 días; E cuotas por sistema directo; I cuotas en dólares; J sistema francés mensual o semestral.
-          </span>
-        </div>
-
         <GlobalDivTable
           ariaLabel="Listado de ayudas económicas"
           bodyClassName="ayudas-global-table__body"
           className="ayudas-global-table"
-          columns={["Ayuda", "Socio", "Tipo", "Capital", "Acreditado", "Vencimiento", "Saldo pendiente", "Estado", "Acciones"]}
+          columns={[
+            "Ayuda",
+            "Socio",
+            "Tipo",
+            { label: "Capital", className: "is-right" },
+            { label: "Acreditado", className: "is-right" },
+            { label: "Vencimiento", className: "is-center" },
+            { label: "Saldo pendiente", className: "is-right" },
+            { label: "Estado", className: "is-center" },
+            { label: "Acciones", className: "is-center" },
+          ]}
           gridClassName="ayudas-global-grid"
         >
           {loading && !records.length ? (
@@ -253,56 +287,114 @@ export default function AyudasPage() {
           {records.map((item) => {
             const overdue = Boolean(Number(item.vencida || 0));
             const currency = item.moneda || "ARS";
-            const renewable = canManage && item.tipo === "B" && item.estado === "VIGENTE" && item.fecha_vencimiento <= localDateValue();
+            const renewable =
+              canManage &&
+              item.tipo === "B" &&
+              item.estado === "VIGENTE" &&
+              item.fecha_vencimiento <= localDateValue();
             return (
-              <div className="global-div-table__row ayudas-global-grid" key={item.id_ayuda} role="row">
-                <div className="global-table-cell global-table-cell--main" role="cell">
+              <div
+                className="global-div-table__row ayudas-global-grid ayudas-table-row"
+                key={item.id_ayuda}
+                role="row"
+              >
+                <div
+                  className="global-table-cell global-table-cell--main ayudas-number-cell"
+                  role="cell"
+                >
                   <strong>N° {aidNumber(item.numero_ayuda)}</strong>
-                  <small>Solicitud {aidNumber(item.numero_solicitud)}</small>
+                  <small className="ayudas-table-meta">
+                    Solicitud {aidNumber(item.numero_solicitud)}
+                  </small>
                 </div>
-                <div className="global-table-cell global-table-cell--main" role="cell">
+                <div
+                  className="global-table-cell global-table-cell--main ayudas-person-cell"
+                  role="cell"
+                >
                   <strong>{item.socio_nombre}</strong>
-                  <small>Socio N° {item.numero_socio} · {item.documento || "S/D"}</small>
+                  <small>
+                    Socio N° {item.numero_socio} · {item.documento || "S/D"}
+                  </small>
                 </div>
                 <div className="global-table-cell ayuda-type-cell" role="cell">
                   <span className="ayuda-type-badge">{item.tipo}</span>
                   <small>{item.producto_nombre}</small>
                 </div>
-                <div className="global-table-cell is-right is-strong" role="cell">
+                <div
+                  className="global-table-cell is-right is-strong"
+                  role="cell"
+                >
                   {formatMoney(item.capital_original, currency)}
-                  {item.tipo === "I" ? <small>{formatMoney(item.capital_equivalente_ars, "ARS")}</small> : null}
+                  {item.tipo === "I" ? (
+                    <small>
+                      {formatMoney(item.capital_equivalente_ars, "ARS")}
+                    </small>
+                  ) : null}
                 </div>
                 <div className="global-table-cell is-right" role="cell">
                   {formatMoney(item.importe_acreditado_ars, "ARS")}
                 </div>
                 <div className="global-table-cell is-center" role="cell">
                   <strong>{formatDate(item.fecha_vencimiento)}</strong>
-                  <small>{item.cuotas_pendientes} pendiente{Number(item.cuotas_pendientes) === 1 ? "" : "s"}</small>
+                  <small>
+                    {item.cuotas_pendientes} pendiente
+                    {Number(item.cuotas_pendientes) === 1 ? "" : "s"}
+                  </small>
                 </div>
-                <div className="global-table-cell is-right is-strong" role="cell">
+                <div
+                  className="global-table-cell is-right is-strong"
+                  role="cell"
+                >
                   {formatMoney(item.saldo_pendiente, currency)}
-                  {item.proximo_vencimiento ? <small>Próx. {formatDate(item.proximo_vencimiento)}</small> : null}
+                  {item.proximo_vencimiento ? (
+                    <small>Próx. {formatDate(item.proximo_vencimiento)}</small>
+                  ) : null}
                 </div>
                 <div className="global-table-cell is-center" role="cell">
-                  <span className={`global-chip ${statusTone(item.estado, overdue)}`}>
+                  <span
+                    className={`global-chip ${statusTone(item.estado, overdue)}`}
+                  >
                     {statusLabel(item.estado, overdue)}
                   </span>
                 </div>
-                <div className="global-table-cell global-table-cell--actions" role="cell">
-                  <div className="global-table-actions">
-                    <button aria-label={`Ver ayuda ${aidNumber(item.numero_ayuda)}`} className="global-icon-button" disabled={openingDetail} onClick={() => openDetail(item)} title="Ver información" type="button">
-                      <GlobalIcon name="info" size={16} />
+                <div
+                  className="global-table-cell global-table-cell--actions"
+                  role="cell"
+                >
+                  <div className="global-table-actions ayudas-table-actions">
+                    <button
+                      aria-label={`Ver ayuda ${aidNumber(item.numero_ayuda)}`}
+                      className="ayuda-action-button is-info"
+                      disabled={openingDetail}
+                      onClick={() => openDetail(item)}
+                      title="Ver información"
+                      type="button"
+                    >
+                      <GlobalActionIcon name="eye" size={12} />
                     </button>
                     {renewable ? (
-                      <button aria-label={`Renovar ayuda ${aidNumber(item.numero_ayuda)}`} className="global-icon-button" onClick={async () => {
-                        try {
-                          const response = await getAyudaDetalle(item.id_ayuda);
-                          setRenewalDetail(response);
-                        } catch (error) {
-                          setFeedback({ type: "error", message: error?.message || "No se pudo preparar la renovación." });
-                        }
-                      }} title="Renovar ayuda B" type="button">
-                        <GlobalIcon name="refresh" size={16} />
+                      <button
+                        aria-label={`Renovar ayuda ${aidNumber(item.numero_ayuda)}`}
+                        className="ayuda-action-button is-warning"
+                        onClick={async () => {
+                          try {
+                            const response = await getAyudaDetalle(
+                              item.id_ayuda,
+                            );
+                            setRenewalDetail(response);
+                          } catch (error) {
+                            setFeedback({
+                              type: "error",
+                              message:
+                                error?.message ||
+                                "No se pudo preparar la renovación.",
+                            });
+                          }
+                        }}
+                        title="Renovar ayuda B"
+                        type="button"
+                      >
+                        <GlobalIcon name="refresh" size={12} />
                       </button>
                     ) : null}
                   </div>
@@ -322,9 +414,15 @@ export default function AyudasPage() {
       <AyudaDetalleModal
         canManage={canManage}
         detail={detail}
-        onAnnul={(value) => { setDetail(null); setAnnulDetail(value); }}
+        onAnnul={(value) => {
+          setDetail(null);
+          setAnnulDetail(value);
+        }}
         onClose={() => setDetail(null)}
-        onRenew={(value) => { setDetail(null); setRenewalDetail(value); }}
+        onRenew={(value) => {
+          setDetail(null);
+          setRenewalDetail(value);
+        }}
         open={Boolean(detail)}
       />
       <AyudaRenovacionModal

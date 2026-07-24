@@ -2,6 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import CrudModal from "../../Global/components/CrudModal";
 import GlobalIcon from "../../Global/components/GlobalIcon";
 import SearchableSelect from "../../Global/components/SearchableSelect";
+import {
+  EntityFormPanel,
+  EntityTabs,
+} from "../../Global/components/TabbedForm";
 import { getAyudasCatalogos, liquidarAyuda, simularAyuda } from "./ayudas.api";
 import {
   addMonths,
@@ -65,16 +69,63 @@ const parseErrors = (error) => ({
 });
 
 function Field({ label, required, error, children, className = "" }) {
+  const child = React.Children.toArray(children)[0];
+  const value = child.props.value;
+  const hasVisiblePlaceholder =
+    typeof child.props.placeholder === "string" &&
+    child.props.placeholder.trim() !== "";
+  const alwaysActive =
+    child.type === SearchableSelect ||
+    child.type === "select" ||
+    child.props.type === "date" ||
+    child.props.type === "number" ||
+    hasVisiblePlaceholder;
+  const active =
+    alwaysActive ||
+    (value !== null && value !== undefined && String(value).trim() !== "");
+
   return (
-    <label className={`ayuda-field ${error ? "has-error" : ""} ${className}`.trim()}>
+    <label
+      className={`entity-field ayuda-field ${active ? "is-active" : ""} ${error ? "has-error" : ""} ${className}`.trim()}
+    >
+      {children}
       <span>
         {label} {required ? <b>*</b> : null}
       </span>
-      {children}
-      {error ? <small>{error}</small> : null}
+      {error ? <small className="entity-field__error">{error}</small> : null}
     </label>
   );
 }
+
+const tabForField = (field = "") => {
+  if (field.startsWith("cheques")) return "values";
+  if (
+    [
+      "rubro",
+      "destino",
+      "tipo_garantia",
+      "garantes",
+      "garante_1",
+      "garante_2",
+      "detalle",
+      "observaciones",
+    ].some((key) => field === key || field.startsWith(`${key}.`))
+  ) {
+    return "guarantee";
+  }
+  if (
+    [
+      "gastos_administrativos",
+      "otros_gastos",
+      "recupero_gastos",
+      "sellado",
+      "seguro",
+    ].includes(field)
+  ) {
+    return "expenses";
+  }
+  return "operation";
+};
 
 export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
   const [form, setForm] = useState(() => initialForm());
@@ -83,6 +134,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
   const [simulation, setSimulation] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("operation");
 
   useEffect(() => {
     if (!open) return;
@@ -90,6 +142,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
     setLocalCatalogs(catalogs || {});
     setSimulation(null);
     setError(null);
+    setActiveTab("operation");
   }, [open, catalogs]);
 
   useEffect(() => {
@@ -162,11 +215,13 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
         next.cheques = current.cheques.map((item) => ({
           ...item,
           fecha_emision:
-            !item.fecha_emision || item.fecha_emision === current.fecha_liquidacion
+            !item.fecha_emision ||
+            item.fecha_emision === current.fecha_liquidacion
               ? value
               : item.fecha_emision,
           fecha_acreditacion:
-            !item.fecha_acreditacion || item.fecha_acreditacion === current.fecha_liquidacion
+            !item.fecha_acreditacion ||
+            item.fecha_acreditacion === current.fecha_liquidacion
               ? value
               : item.fecha_acreditacion,
         }));
@@ -181,6 +236,12 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
     });
     setSimulation(null);
     setError(null);
+    if (
+      activeTab === "summary" ||
+      (field === "tipo" && value !== "A" && activeTab === "values")
+    ) {
+      setActiveTab("operation");
+    }
   };
 
   const updateCheck = (index, field, value) => {
@@ -192,6 +253,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
     }));
     setSimulation(null);
     setError(null);
+    if (activeTab === "summary") setActiveTab("values");
   };
 
   const addCheck = () => {
@@ -200,6 +262,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
       cheques: [...current.cheques, emptyCheck(current.fecha_liquidacion)],
     }));
     setSimulation(null);
+    if (activeTab === "summary") setActiveTab("values");
   };
 
   const removeCheck = (index) => {
@@ -211,6 +274,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
           : current.cheques.filter((_, itemIndex) => itemIndex !== index),
     }));
     setSimulation(null);
+    if (activeTab === "summary") setActiveTab("values");
   };
 
   const payload = useMemo(
@@ -235,12 +299,13 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
       recupero_gastos: numericValue(form.recupero_gastos),
       sellado: numericValue(form.sellado),
       seguro: numericValue(form.seguro),
-      cheques: form.tipo === "A"
-        ? form.cheques.map((item) => ({
-            ...item,
-            importe: numericValue(item.importe),
-          }))
-        : [],
+      cheques:
+        form.tipo === "A"
+          ? form.cheques.map((item) => ({
+              ...item,
+              importe: numericValue(item.importe),
+            }))
+          : [],
     }),
     [form],
   );
@@ -253,12 +318,16 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
       if (!simulation) {
         const response = await simularAyuda(payload);
         setSimulation(response);
+        setActiveTab("summary");
       } else {
         const response = await liquidarAyuda(payload);
         onLiquidated?.(response);
       }
     } catch (submitError) {
-      setError(parseErrors(submitError));
+      const parsedError = parseErrors(submitError);
+      setError(parsedError);
+      const firstField = Object.keys(parsedError.fields || {})[0];
+      if (firstField) setActiveTab(tabForField(firstField));
     } finally {
       setBusy(false);
     }
@@ -267,7 +336,48 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
   const rateMissing = !activeRate;
   const quoteMissing = form.tipo === "I" && !quote;
   const fieldError = (name) => error?.fields?.[name];
-  const checkCapital = form.cheques.reduce((sum, item) => sum + numericValue(item.importe), 0);
+  const checkCapital = form.cheques.reduce(
+    (sum, item) => sum + numericValue(item.importe),
+    0,
+  );
+  const modalTabs = [
+    {
+      value: "operation",
+      label: "Operación",
+      hasError: Object.keys(error?.fields || {}).some(
+        (field) => tabForField(field) === "operation",
+      ),
+    },
+    ...(form.tipo === "A"
+      ? [
+          {
+            value: "values",
+            label: "Valores / cheques",
+            badge: form.cheques.length,
+            hasError: Object.keys(error?.fields || {}).some(
+              (field) => tabForField(field) === "values",
+            ),
+          },
+        ]
+      : []),
+    {
+      value: "guarantee",
+      label: "Destino y garantía",
+      hasError: Object.keys(error?.fields || {}).some(
+        (field) => tabForField(field) === "guarantee",
+      ),
+    },
+    {
+      value: "expenses",
+      label: "Gastos",
+      hasError: Object.keys(error?.fields || {}).some(
+        (field) => tabForField(field) === "expenses",
+      ),
+    },
+    ...(simulation
+      ? [{ value: "summary", label: "Liquidación calculada" }]
+      : []),
+  ];
 
   return (
     <CrudModal
@@ -276,7 +386,10 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
           <button
             className="global-button global-button--ghost"
             disabled={busy}
-            onClick={() => setSimulation(null)}
+            onClick={() => {
+              setSimulation(null);
+              setActiveTab("operation");
+            }}
             type="button"
           >
             Modificar datos
@@ -305,295 +418,748 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
       {rateMissing ? (
         <div className="ayuda-alert is-warning">
           <GlobalIcon name="warning" size={18} />
-          <span>No hay una tasa vigente para el grupo {group || "seleccionado"}. Cargala desde “Tasas y dólar”.</span>
+          <span>
+            No hay una tasa vigente para el grupo {group || "seleccionado"}.
+            Cargala desde “Tasas y dólar”.
+          </span>
         </div>
       ) : null}
       {quoteMissing ? (
         <div className="ayuda-alert is-warning">
           <GlobalIcon name="warning" size={18} />
-          <span>No hay cotización del dólar para {form.fecha_liquidacion.slice(0, 7)}.</span>
+          <span>
+            No hay cotización del dólar para{" "}
+            {form.fecha_liquidacion.slice(0, 7)}.
+          </span>
         </div>
       ) : null}
 
-      <div className="ayuda-form-section">
-        <div className="ayuda-form-section__title">
-          <strong>Liquidación</strong>
-          <span>Datos principales de la ayuda y del socio.</span>
-        </div>
-        <div className="ayuda-form-grid ayuda-form-grid--4">
-          <Field error={fieldError("tipo")} label="Tipo de ayuda" required>
-            <select onChange={(event) => update("tipo", event.target.value)} value={form.tipo}>
-              {(localCatalogs?.productos || []).map((item) => (
-                <option key={item.codigo} value={item.codigo}>
-                  {item.codigo} · {item.nombre}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field error={fieldError("id_asociado")} label="Socio" required className="is-span-2">
-            <SearchableSelect
-              ariaLabel="Buscar socio"
-              clearLabel="SIN SOCIO SELECCIONADO"
-              emptyMessage="NO SE ENCONTRARON SOCIOS"
-              onChange={(value) => update("id_asociado", value)}
-              options={associateOptions}
-              placeholder="BUSCAR POR N° DE SOCIO, NOMBRE O DOCUMENTO..."
-              value={form.id_asociado}
-            />
-          </Field>
-          <Field label="Moneda">
-            <input readOnly value={currency === "USD" ? "DÓLARES (USD)" : "PESOS (ARS)"} />
-          </Field>
-          <Field label="Fecha de solicitud" required>
-            <input max={form.fecha_liquidacion || localDateValue()} type="date" value={form.fecha_solicitud} onChange={(event) => update("fecha_solicitud", event.target.value)} />
-          </Field>
-          <Field label="Fecha de liquidación" required>
-            <input max={localDateValue()} min={form.fecha_solicitud || undefined} type="date" value={form.fecha_liquidacion} onChange={(event) => update("fecha_liquidacion", event.target.value)} />
-          </Field>
-          <Field label="TNA vigente">
-            <input readOnly value={activeRate ? `${formatRate(activeRate.tna)} · BASE ${activeRate.base_dias || 365}` : "SIN CONFIGURAR"} />
-          </Field>
-          <Field label="Cotización del dólar">
-            <input readOnly value={form.tipo === "I" ? (quote ? formatMoney(quote.valor_promedio, "ARS") : "SIN CONFIGURAR") : "NO APLICA"} />
-          </Field>
-        </div>
-      </div>
-
-      <div className="ayuda-form-section">
-        <div className="ayuda-form-section__title">
-          <strong>Condiciones financieras</strong>
-          <span>Plazo, vencimiento, capital y sistema de amortización según el tipo.</span>
-        </div>
-        <div className="ayuda-form-grid ayuda-form-grid--4">
-          {form.tipo !== "A" ? (
-            <Field error={fieldError("capital")} label={`Capital (${currency})`} required>
-              <input min="0" onChange={(event) => update("capital", event.target.value)} step="0.01" type="number" value={form.capital} />
-            </Field>
-          ) : (
-            <Field label="Capital en cheques">
-              <input readOnly value={formatMoney(checkCapital, "ARS")} />
-            </Field>
-          )}
-
-          {form.tipo === "B" ? (
-            <Field error={fieldError("plazo_dias")} label="Plazo" required>
-              <select value={form.plazo_dias} onChange={(event) => update("plazo_dias", event.target.value)}>
-                <option value="30">30 DÍAS</option>
-                <option value="60">60 DÍAS</option>
-              </select>
-            </Field>
-          ) : null}
-
-          {form.tipo === "E" ? (
-            <Field error={fieldError("cantidad_cuotas")} label="Cuotas" required>
-              <select value={form.cantidad_cuotas} onChange={(event) => update("cantidad_cuotas", event.target.value)}>
-                <option value="12">12 CUOTAS</option>
-                <option value="18">18 CUOTAS</option>
-                <option value="24">24 CUOTAS</option>
-              </select>
-            </Field>
-          ) : null}
-
-          {form.tipo === "I" || form.tipo === "J" ? (
-            <Field error={fieldError("cantidad_cuotas")} label="Cantidad de cuotas" required>
-              <input max="120" min="1" onChange={(event) => update("cantidad_cuotas", event.target.value)} type="number" value={form.cantidad_cuotas} />
-            </Field>
-          ) : null}
-
-          {form.tipo === "J" ? (
-            <Field label="Periodicidad" required>
-              <select value={form.periodicidad} onChange={(event) => update("periodicidad", event.target.value)}>
-                <option value="MENSUAL">MENSUAL</option>
-                <option value="SEMESTRAL">SEMESTRAL</option>
-              </select>
-            </Field>
-          ) : null}
-
-          {["E", "I", "J"].includes(form.tipo) ? (
-            <Field error={fieldError("fecha_primer_vencimiento")} label="Primer vencimiento" required>
-              <input type="date" value={form.fecha_primer_vencimiento} onChange={(event) => update("fecha_primer_vencimiento", event.target.value)} />
-            </Field>
-          ) : null}
-
-          <Field label="Sistema">
-            <input
-              readOnly
-              value={
-                form.tipo === "A"
-                  ? "COMPRA DE VALORES"
-                  : form.tipo === "B"
-                    ? "AL VENCIMIENTO / RENOVABLE"
-                    : form.tipo === "J"
-                      ? "FRANCÉS"
-                      : "DIRECTO"
-              }
-            />
-          </Field>
-          <Field label="Desembolso">
-            <input readOnly value="CAJA DE AHORRO COMÚN" />
-          </Field>
-        </div>
-      </div>
-
-      {form.tipo === "A" ? (
-        <div className="ayuda-form-section">
-          <div className="ayuda-form-section__title ayuda-form-section__title--actions">
-            <div>
-              <strong>Valores / cheques</strong>
-              <span>El devengamiento se calcula hasta la fecha de acreditación de cada cheque.</span>
-            </div>
-            <button className="global-button global-button--ghost" onClick={addCheck} type="button">
-              <GlobalIcon name="plus" size={15} /> Agregar cheque
-            </button>
-          </div>
-          <div className="ayuda-checks">
-            {form.cheques.map((item, index) => (
-              <article className="ayuda-check-card" key={`check-${index}`}>
-                <header>
-                  <strong>Cheque {index + 1}</strong>
-                  <button aria-label="Quitar cheque" onClick={() => removeCheck(index)} type="button">
-                    <GlobalIcon name="trash" size={15} />
-                  </button>
-                </header>
-                <div className="ayuda-form-grid ayuda-form-grid--4">
-                  <Field label="Banco" required><input value={item.banco} onChange={(event) => updateCheck(index, "banco", event.target.value)} /></Field>
-                  <Field label="Sucursal"><input value={item.sucursal} onChange={(event) => updateCheck(index, "sucursal", event.target.value)} /></Field>
-                  <Field label="Localidad"><input value={item.localidad} onChange={(event) => updateCheck(index, "localidad", event.target.value)} /></Field>
-                  <Field label="Código postal"><input value={item.codigo_postal} onChange={(event) => updateCheck(index, "codigo_postal", event.target.value)} /></Field>
-                  <Field label="N° cheque" required><input value={item.numero_cheque} onChange={(event) => updateCheck(index, "numero_cheque", event.target.value)} /></Field>
-                  <Field label="Cuenta"><input value={item.cuenta} onChange={(event) => updateCheck(index, "cuenta", event.target.value)} /></Field>
-                  <Field label="CUIT librador"><input value={item.cuit_librador} onChange={(event) => updateCheck(index, "cuit_librador", event.target.value)} /></Field>
-                  <Field label="Importe" required><input min="0" step="0.01" type="number" value={item.importe} onChange={(event) => updateCheck(index, "importe", event.target.value)} /></Field>
-                  <Field label="Fecha de emisión" required><input type="date" value={item.fecha_emision} onChange={(event) => updateCheck(index, "fecha_emision", event.target.value)} /></Field>
-                  <Field label="Fecha de acreditación" required><input type="date" value={item.fecha_acreditacion} onChange={(event) => updateCheck(index, "fecha_acreditacion", event.target.value)} /></Field>
-                  <label className="ayuda-check-toggle"><input checked={item.endosado} type="checkbox" onChange={(event) => updateCheck(index, "endosado", event.target.checked)} /><span>Endosado</span></label>
-                  <label className="ayuda-check-toggle"><input checked={item.electronico} type="checkbox" onChange={(event) => updateCheck(index, "electronico", event.target.checked)} /><span>Cheque electrónico</span></label>
+      <div className="entity-form ayuda-modal__form">
+        <EntityTabs
+          ariaLabel="Secciones de la nueva ayuda"
+          idPrefix="ayuda-liquidacion-tab"
+          onChange={setActiveTab}
+          tabs={modalTabs}
+          value={activeTab}
+        />
+        <div className="ayuda-modal__content">
+          {activeTab === "operation" ? (
+            <EntityFormPanel
+              eyebrow="Datos principales"
+              idPrefix="ayuda-liquidacion-tab"
+              tabValue="operation"
+              tag={form.tipo ? `Tipo ${form.tipo}` : null}
+              title="Operación y condiciones financieras"
+            >
+              <div className="ayuda-form-section">
+                <div className="ayuda-form-section__title">
+                  <strong>Liquidación</strong>
+                  <span>Datos principales de la ayuda y del socio.</span>
                 </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      ) : null}
+                <div className="ayuda-form-grid ayuda-form-grid--4">
+                  <Field
+                    error={fieldError("tipo")}
+                    label="Tipo de ayuda"
+                    required
+                  >
+                    <select
+                      onChange={(event) => update("tipo", event.target.value)}
+                      value={form.tipo}
+                    >
+                      {(localCatalogs?.productos || []).map((item) => (
+                        <option key={item.codigo} value={item.codigo}>
+                          {item.codigo} · {item.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field
+                    error={fieldError("id_asociado")}
+                    label="Socio"
+                    required
+                    className="is-span-2"
+                  >
+                    <SearchableSelect
+                      ariaLabel="Buscar socio"
+                      clearLabel="SIN SOCIO SELECCIONADO"
+                      emptyMessage="NO SE ENCONTRARON SOCIOS"
+                      onChange={(value) => update("id_asociado", value)}
+                      options={associateOptions}
+                      placeholder="Buscar por N.º de socio, nombre o documento"
+                      value={form.id_asociado}
+                    />
+                  </Field>
+                  <Field label="Moneda">
+                    <input
+                      readOnly
+                      value={
+                        currency === "USD" ? "DÓLARES (USD)" : "PESOS (ARS)"
+                      }
+                    />
+                  </Field>
+                  <Field label="Fecha de solicitud" required>
+                    <input
+                      max={form.fecha_liquidacion || localDateValue()}
+                      type="date"
+                      value={form.fecha_solicitud}
+                      onChange={(event) =>
+                        update("fecha_solicitud", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field label="Fecha de liquidación" required>
+                    <input
+                      max={localDateValue()}
+                      min={form.fecha_solicitud || undefined}
+                      type="date"
+                      value={form.fecha_liquidacion}
+                      onChange={(event) =>
+                        update("fecha_liquidacion", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field label="TNA vigente">
+                    <input
+                      readOnly
+                      value={
+                        activeRate
+                          ? `${formatRate(activeRate.tna)} · BASE ${activeRate.base_dias || 365}`
+                          : "SIN CONFIGURAR"
+                      }
+                    />
+                  </Field>
+                  <Field label="Cotización del dólar">
+                    <input
+                      readOnly
+                      value={
+                        form.tipo === "I"
+                          ? quote
+                            ? formatMoney(quote.valor_promedio, "ARS")
+                            : "SIN CONFIGURAR"
+                          : "NO APLICA"
+                      }
+                    />
+                  </Field>
+                </div>
+              </div>
 
-      <div className="ayuda-form-section">
-        <div className="ayuda-form-section__title">
-          <strong>Rubro, destino y garantía</strong>
-          <span>Campos presentes en la liquidación y en el mutuo.</span>
-        </div>
-        <div className="ayuda-form-grid ayuda-form-grid--4">
-          <Field error={fieldError("rubro")} label="Rubro" required>
-            <input
-              list="ayuda-rubros-sugeridos"
-              value={form.rubro}
-              onChange={(event) => update("rubro", event.target.value)}
-            />
-            <datalist id="ayuda-rubros-sugeridos">
-              {(localCatalogs?.rubros || []).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-            </datalist>
-          </Field>
-          <Field error={fieldError("destino")} label="Destino" required className="is-span-2">
-            <input value={form.destino} onChange={(event) => update("destino", event.target.value)} placeholder="Ej.: ADQUISICIÓN DE MERCADERÍA" />
-          </Field>
-          <Field error={fieldError("tipo_garantia")} label="Tipo de garantía" required>
-            <input
-              list="ayuda-garantias-sugeridas"
-              value={form.tipo_garantia}
-              onChange={(event) => update("tipo_garantia", event.target.value)}
-            />
-            <datalist id="ayuda-garantias-sugeridas">
-              {(localCatalogs?.tipos_garantia || []).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-            </datalist>
-          </Field>
-          <Field label="Garante 1" className="is-span-2">
-            <SearchableSelect
-              ariaLabel="Buscar primer garante"
-              clearLabel="SIN GARANTE"
-              emptyMessage="NO SE ENCONTRARON PERSONAS"
-              onChange={(value) => update("garante_1", value)}
-              options={guarantorOptions
-                .filter((item) => Number(item.id) !== Number(form.garante_2 || 0))
-                .map(toGuarantorOption)}
-              placeholder="BUSCAR GARANTE POR NOMBRE O DOCUMENTO..."
-              value={form.garante_1}
-            />
-          </Field>
-          <Field label="Garante 2" className="is-span-2">
-            <SearchableSelect
-              ariaLabel="Buscar segundo garante"
-              clearLabel="SIN SEGUNDO GARANTE"
-              emptyMessage="NO SE ENCONTRARON PERSONAS"
-              onChange={(value) => update("garante_2", value)}
-              options={guarantorOptions
-                .filter((item) => Number(item.id) !== Number(form.garante_1 || 0))
-                .map(toGuarantorOption)}
-              placeholder="BUSCAR GARANTE POR NOMBRE O DOCUMENTO..."
-              value={form.garante_2}
-            />
-          </Field>
-          <Field label="Detalle" className="is-span-2"><input value={form.detalle} onChange={(event) => update("detalle", event.target.value)} /></Field>
-          <Field label="Observaciones" className="is-span-2"><input value={form.observaciones} onChange={(event) => update("observaciones", event.target.value)} /></Field>
-        </div>
-      </div>
+              <div className="ayuda-form-section">
+                <div className="ayuda-form-section__title">
+                  <strong>Condiciones financieras</strong>
+                  <span>
+                    Plazo, vencimiento, capital y sistema de amortización según
+                    el tipo.
+                  </span>
+                </div>
+                <div className="ayuda-form-grid ayuda-form-grid--4">
+                  {form.tipo !== "A" ? (
+                    <Field
+                      error={fieldError("capital")}
+                      label={`Capital (${currency})`}
+                      required
+                    >
+                      <input
+                        min="0"
+                        onChange={(event) =>
+                          update("capital", event.target.value)
+                        }
+                        step="0.01"
+                        type="number"
+                        value={form.capital}
+                      />
+                    </Field>
+                  ) : (
+                    <Field label="Capital en cheques">
+                      <input
+                        readOnly
+                        value={formatMoney(checkCapital, "ARS")}
+                      />
+                    </Field>
+                  )}
 
-      <div className="ayuda-form-section">
-        <div className="ayuda-form-section__title">
-          <strong>Gastos y seguro</strong>
-          <span>Se distribuyen en el plan; en la compra de cheques se descuentan del importe acreditado.</span>
-        </div>
-        <div className="ayuda-form-grid ayuda-form-grid--5">
-          {[
-            ["gastos_administrativos", "Gastos administrativos"],
-            ["otros_gastos", "Otros gastos"],
-            ["recupero_gastos", "Recupero de gastos"],
-            ["sellado", "Sellado"],
-            ["seguro", "Seguro"],
-          ].map(([key, label]) => (
-            <Field key={key} label={`${label} (${currency})`}>
-              <input min="0" step="0.01" type="number" value={form[key]} onChange={(event) => update(key, event.target.value)} />
-            </Field>
-          ))}
-        </div>
-      </div>
+                  {form.tipo === "B" ? (
+                    <Field
+                      error={fieldError("plazo_dias")}
+                      label="Plazo"
+                      required
+                    >
+                      <select
+                        value={form.plazo_dias}
+                        onChange={(event) =>
+                          update("plazo_dias", event.target.value)
+                        }
+                      >
+                        <option value="30">30 DÍAS</option>
+                        <option value="60">60 DÍAS</option>
+                      </select>
+                    </Field>
+                  ) : null}
 
-      {simulation ? (
-        <div className="ayuda-simulation">
-          <div className="ayuda-simulation__head">
-            <div>
-              <strong>Liquidación calculada</strong>
-              <span>{simulation.producto?.codigo} · {simulation.producto?.nombre}</span>
-            </div>
-            <span className="global-chip is-success">LISTA PARA LIQUIDAR</span>
-          </div>
-          <div className="ayuda-summary-grid">
-            <div><span>Capital</span><strong>{formatMoney(simulation.resumen?.capital_original, simulation.producto?.moneda)}</strong></div>
-            <div><span>Devengamiento</span><strong>{formatMoney(simulation.resumen?.devengamiento_total, simulation.producto?.moneda)}</strong></div>
-            <div><span>Total</span><strong>{formatMoney(simulation.resumen?.total_a_devolver, simulation.producto?.moneda)}</strong></div>
-            <div><span>Acreditación en caja común</span><strong>{formatMoney(simulation.resumen?.importe_acreditado_ars, "ARS")}</strong></div>
-            <div><span>TEM / TNA</span><strong>{formatRate(simulation.resumen?.tem)} / {formatRate(simulation.resumen?.tna)}</strong></div>
-            <div><span>TEA / CFT</span><strong>{formatRate(simulation.resumen?.tea)} / {formatRate(simulation.resumen?.cft)}</strong></div>
-            <div><span>Primer vencimiento</span><strong>{formatDate(simulation.campos?.fecha_primer_vencimiento)}</strong></div>
-            <div><span>Vencimiento final</span><strong>{formatDate(simulation.campos?.fecha_vencimiento)}</strong></div>
-          </div>
-          {simulation.cuotas?.length ? (
-            <div className="ayuda-plan-preview">
-              <table>
-                <thead><tr><th>Cuota</th><th>Vencimiento</th><th>Amortización</th><th>Interés</th><th>Total</th></tr></thead>
-                <tbody>
-                  {simulation.cuotas.slice(0, 6).map((item) => (
-                    <tr key={item.numero_cuota}>
-                      <td>{item.numero_cuota}</td><td>{formatDate(item.fecha_vencimiento)}</td>
-                      <td>{formatMoney(item.amortizacion_capital, simulation.producto?.moneda)}</td>
-                      <td>{formatMoney(item.devengamiento, simulation.producto?.moneda)}</td>
-                      <td>{formatMoney(item.importe_cuota, simulation.producto?.moneda)}</td>
-                    </tr>
+                  {form.tipo === "E" ? (
+                    <Field
+                      error={fieldError("cantidad_cuotas")}
+                      label="Cuotas"
+                      required
+                    >
+                      <select
+                        value={form.cantidad_cuotas}
+                        onChange={(event) =>
+                          update("cantidad_cuotas", event.target.value)
+                        }
+                      >
+                        <option value="12">12 CUOTAS</option>
+                        <option value="18">18 CUOTAS</option>
+                        <option value="24">24 CUOTAS</option>
+                      </select>
+                    </Field>
+                  ) : null}
+
+                  {form.tipo === "I" || form.tipo === "J" ? (
+                    <Field
+                      error={fieldError("cantidad_cuotas")}
+                      label="Cantidad de cuotas"
+                      required
+                    >
+                      <input
+                        max="120"
+                        min="1"
+                        onChange={(event) =>
+                          update("cantidad_cuotas", event.target.value)
+                        }
+                        type="number"
+                        value={form.cantidad_cuotas}
+                      />
+                    </Field>
+                  ) : null}
+
+                  {form.tipo === "J" ? (
+                    <Field label="Periodicidad" required>
+                      <select
+                        value={form.periodicidad}
+                        onChange={(event) =>
+                          update("periodicidad", event.target.value)
+                        }
+                      >
+                        <option value="MENSUAL">MENSUAL</option>
+                        <option value="SEMESTRAL">SEMESTRAL</option>
+                      </select>
+                    </Field>
+                  ) : null}
+
+                  {["E", "I", "J"].includes(form.tipo) ? (
+                    <Field
+                      error={fieldError("fecha_primer_vencimiento")}
+                      label="Primer vencimiento"
+                      required
+                    >
+                      <input
+                        type="date"
+                        value={form.fecha_primer_vencimiento}
+                        onChange={(event) =>
+                          update("fecha_primer_vencimiento", event.target.value)
+                        }
+                      />
+                    </Field>
+                  ) : null}
+
+                  <Field label="Sistema">
+                    <input
+                      readOnly
+                      value={
+                        form.tipo === "A"
+                          ? "COMPRA DE VALORES"
+                          : form.tipo === "B"
+                            ? "AL VENCIMIENTO / RENOVABLE"
+                            : form.tipo === "J"
+                              ? "FRANCÉS"
+                              : "DIRECTO"
+                      }
+                    />
+                  </Field>
+                  <Field label="Desembolso">
+                    <input readOnly value="CAJA DE AHORRO COMÚN" />
+                  </Field>
+                </div>
+              </div>
+            </EntityFormPanel>
+          ) : null}
+
+          {form.tipo === "A" && activeTab === "values" ? (
+            <EntityFormPanel
+              eyebrow="Documentación"
+              idPrefix="ayuda-liquidacion-tab"
+              tabValue="values"
+              tag={`${form.cheques.length} cheque${form.cheques.length === 1 ? "" : "s"}`}
+              title="Valores entregados"
+            >
+              <div className="ayuda-form-section">
+                <div className="ayuda-form-section__title ayuda-form-section__title--actions">
+                  <div>
+                    <strong>Valores / cheques</strong>
+                    <span>
+                      El devengamiento se calcula hasta la fecha de acreditación
+                      de cada cheque.
+                    </span>
+                  </div>
+                  <button
+                    className="global-button global-button--ghost"
+                    onClick={addCheck}
+                    type="button"
+                  >
+                    <GlobalIcon name="plus" size={15} /> Agregar cheque
+                  </button>
+                </div>
+                <div className="ayuda-checks">
+                  {form.cheques.map((item, index) => (
+                    <article
+                      className="ayuda-check-card"
+                      key={`check-${index}`}
+                    >
+                      <header>
+                        <strong>Cheque {index + 1}</strong>
+                        <button
+                          aria-label="Quitar cheque"
+                          onClick={() => removeCheck(index)}
+                          type="button"
+                        >
+                          <GlobalIcon name="trash" size={15} />
+                        </button>
+                      </header>
+                      <div className="ayuda-form-grid ayuda-form-grid--4">
+                        <Field label="Banco" required>
+                          <input
+                            value={item.banco}
+                            onChange={(event) =>
+                              updateCheck(index, "banco", event.target.value)
+                            }
+                          />
+                        </Field>
+                        <Field label="Sucursal">
+                          <input
+                            value={item.sucursal}
+                            onChange={(event) =>
+                              updateCheck(index, "sucursal", event.target.value)
+                            }
+                          />
+                        </Field>
+                        <Field label="Localidad">
+                          <input
+                            value={item.localidad}
+                            onChange={(event) =>
+                              updateCheck(
+                                index,
+                                "localidad",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </Field>
+                        <Field label="Código postal">
+                          <input
+                            value={item.codigo_postal}
+                            onChange={(event) =>
+                              updateCheck(
+                                index,
+                                "codigo_postal",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </Field>
+                        <Field label="N° cheque" required>
+                          <input
+                            value={item.numero_cheque}
+                            onChange={(event) =>
+                              updateCheck(
+                                index,
+                                "numero_cheque",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </Field>
+                        <Field label="Cuenta">
+                          <input
+                            value={item.cuenta}
+                            onChange={(event) =>
+                              updateCheck(index, "cuenta", event.target.value)
+                            }
+                          />
+                        </Field>
+                        <Field label="CUIT librador">
+                          <input
+                            value={item.cuit_librador}
+                            onChange={(event) =>
+                              updateCheck(
+                                index,
+                                "cuit_librador",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </Field>
+                        <Field label="Importe" required>
+                          <input
+                            min="0"
+                            step="0.01"
+                            type="number"
+                            value={item.importe}
+                            onChange={(event) =>
+                              updateCheck(index, "importe", event.target.value)
+                            }
+                          />
+                        </Field>
+                        <Field label="Fecha de emisión" required>
+                          <input
+                            type="date"
+                            value={item.fecha_emision}
+                            onChange={(event) =>
+                              updateCheck(
+                                index,
+                                "fecha_emision",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </Field>
+                        <Field label="Fecha de acreditación" required>
+                          <input
+                            type="date"
+                            value={item.fecha_acreditacion}
+                            onChange={(event) =>
+                              updateCheck(
+                                index,
+                                "fecha_acreditacion",
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </Field>
+                        <label className="ayuda-check-toggle">
+                          <input
+                            checked={item.endosado}
+                            type="checkbox"
+                            onChange={(event) =>
+                              updateCheck(
+                                index,
+                                "endosado",
+                                event.target.checked,
+                              )
+                            }
+                          />
+                          <span>Endosado</span>
+                        </label>
+                        <label className="ayuda-check-toggle">
+                          <input
+                            checked={item.electronico}
+                            type="checkbox"
+                            onChange={(event) =>
+                              updateCheck(
+                                index,
+                                "electronico",
+                                event.target.checked,
+                              )
+                            }
+                          />
+                          <span>Cheque electrónico</span>
+                        </label>
+                      </div>
+                    </article>
                   ))}
-                </tbody>
-              </table>
-              {simulation.cuotas.length > 6 ? <small>Se muestran las primeras 6 de {simulation.cuotas.length} cuotas. El plan completo queda guardado.</small> : null}
-            </div>
+                </div>
+              </div>
+            </EntityFormPanel>
+          ) : null}
+
+          {activeTab === "guarantee" ? (
+            <EntityFormPanel
+              eyebrow="Aplicación y respaldo"
+              idPrefix="ayuda-liquidacion-tab"
+              tabValue="guarantee"
+              title="Destino, detalle y garantía"
+            >
+              <div className="ayuda-form-section">
+                <div className="ayuda-form-section__title">
+                  <strong>Rubro, destino y garantía</strong>
+                  <span>Campos presentes en la liquidación y en el mutuo.</span>
+                </div>
+                <div className="ayuda-form-grid ayuda-form-grid--4">
+                  <Field error={fieldError("rubro")} label="Rubro" required>
+                    <input
+                      list="ayuda-rubros-sugeridos"
+                      value={form.rubro}
+                      onChange={(event) => update("rubro", event.target.value)}
+                    />
+                    <datalist id="ayuda-rubros-sugeridos">
+                      {(localCatalogs?.rubros || []).map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </datalist>
+                  </Field>
+                  <Field
+                    error={fieldError("destino")}
+                    label="Destino"
+                    required
+                    className="is-span-2"
+                  >
+                    <input
+                      value={form.destino}
+                      onChange={(event) =>
+                        update("destino", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field
+                    error={fieldError("tipo_garantia")}
+                    label="Tipo de garantía"
+                    required
+                  >
+                    <input
+                      list="ayuda-garantias-sugeridas"
+                      value={form.tipo_garantia}
+                      onChange={(event) =>
+                        update("tipo_garantia", event.target.value)
+                      }
+                    />
+                    <datalist id="ayuda-garantias-sugeridas">
+                      {(localCatalogs?.tipos_garantia || []).map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </datalist>
+                  </Field>
+                  <Field label="Garante 1" className="is-span-2">
+                    <SearchableSelect
+                      ariaLabel="Buscar primer garante"
+                      clearLabel="SIN GARANTE"
+                      emptyMessage="NO SE ENCONTRARON PERSONAS"
+                      onChange={(value) => update("garante_1", value)}
+                      options={guarantorOptions
+                        .filter(
+                          (item) =>
+                            Number(item.id) !== Number(form.garante_2 || 0),
+                        )
+                        .map(toGuarantorOption)}
+                      placeholder="Buscar garante por nombre o documento"
+                      value={form.garante_1}
+                    />
+                  </Field>
+                  <Field label="Garante 2" className="is-span-2">
+                    <SearchableSelect
+                      ariaLabel="Buscar segundo garante"
+                      clearLabel="SIN SEGUNDO GARANTE"
+                      emptyMessage="NO SE ENCONTRARON PERSONAS"
+                      onChange={(value) => update("garante_2", value)}
+                      options={guarantorOptions
+                        .filter(
+                          (item) =>
+                            Number(item.id) !== Number(form.garante_1 || 0),
+                        )
+                        .map(toGuarantorOption)}
+                      placeholder="Buscar garante por nombre o documento"
+                      value={form.garante_2}
+                    />
+                  </Field>
+                  <Field label="Detalle" className="is-span-2">
+                    <input
+                      value={form.detalle}
+                      onChange={(event) =>
+                        update("detalle", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field label="Observaciones" className="is-span-2">
+                    <input
+                      value={form.observaciones}
+                      onChange={(event) =>
+                        update("observaciones", event.target.value)
+                      }
+                    />
+                  </Field>
+                </div>
+              </div>
+            </EntityFormPanel>
+          ) : null}
+
+          {activeTab === "expenses" ? (
+            <EntityFormPanel
+              eyebrow="Importes adicionales"
+              idPrefix="ayuda-liquidacion-tab"
+              tabValue="expenses"
+              tag={currency}
+              title="Gastos y seguro"
+            >
+              <div className="ayuda-form-section">
+                <div className="ayuda-form-section__title">
+                  <strong>Gastos y seguro</strong>
+                  <span>
+                    Se distribuyen en el plan; en la compra de cheques se
+                    descuentan del importe acreditado.
+                  </span>
+                </div>
+                <div className="ayuda-form-grid ayuda-form-grid--5">
+                  {[
+                    ["gastos_administrativos", "Gastos administrativos"],
+                    ["otros_gastos", "Otros gastos"],
+                    ["recupero_gastos", "Recupero de gastos"],
+                    ["sellado", "Sellado"],
+                    ["seguro", "Seguro"],
+                  ].map(([key, label]) => (
+                    <Field key={key} label={`${label} (${currency})`}>
+                      <input
+                        min="0"
+                        step="0.01"
+                        type="number"
+                        value={form[key]}
+                        onChange={(event) => update(key, event.target.value)}
+                      />
+                    </Field>
+                  ))}
+                </div>
+              </div>
+            </EntityFormPanel>
+          ) : null}
+
+          {simulation && activeTab === "summary" ? (
+            <EntityFormPanel
+              eyebrow="Resultado de la simulación"
+              idPrefix="ayuda-liquidacion-tab"
+              tabValue="summary"
+              tag="Lista para liquidar"
+              title="Liquidación calculada"
+            >
+              <div className="ayuda-simulation">
+                <div className="ayuda-simulation__head">
+                  <div>
+                    <strong>Liquidación calculada</strong>
+                    <span>
+                      {simulation.producto?.codigo} ·{" "}
+                      {simulation.producto?.nombre}
+                    </span>
+                  </div>
+                  <span className="global-chip is-success">
+                    LISTA PARA LIQUIDAR
+                  </span>
+                </div>
+                <div className="ayuda-summary-grid">
+                  <div>
+                    <span>Capital</span>
+                    <strong>
+                      {formatMoney(
+                        simulation.resumen?.capital_original,
+                        simulation.producto?.moneda,
+                      )}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Devengamiento</span>
+                    <strong>
+                      {formatMoney(
+                        simulation.resumen?.devengamiento_total,
+                        simulation.producto?.moneda,
+                      )}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Total</span>
+                    <strong>
+                      {formatMoney(
+                        simulation.resumen?.total_a_devolver,
+                        simulation.producto?.moneda,
+                      )}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Acreditación en caja común</span>
+                    <strong>
+                      {formatMoney(
+                        simulation.resumen?.importe_acreditado_ars,
+                        "ARS",
+                      )}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>TEM / TNA</span>
+                    <strong>
+                      {formatRate(simulation.resumen?.tem)} /{" "}
+                      {formatRate(simulation.resumen?.tna)}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>TEA / CFT</span>
+                    <strong>
+                      {formatRate(simulation.resumen?.tea)} /{" "}
+                      {formatRate(simulation.resumen?.cft)}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Primer vencimiento</span>
+                    <strong>
+                      {formatDate(simulation.campos?.fecha_primer_vencimiento)}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Vencimiento final</span>
+                    <strong>
+                      {formatDate(simulation.campos?.fecha_vencimiento)}
+                    </strong>
+                  </div>
+                </div>
+                {simulation.cuotas?.length ? (
+                  <div className="ayuda-plan-preview">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Cuota</th>
+                          <th>Vencimiento</th>
+                          <th>Amortización</th>
+                          <th>Interés</th>
+                          <th>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {simulation.cuotas.slice(0, 6).map((item) => (
+                          <tr key={item.numero_cuota}>
+                            <td>{item.numero_cuota}</td>
+                            <td>{formatDate(item.fecha_vencimiento)}</td>
+                            <td>
+                              {formatMoney(
+                                item.amortizacion_capital,
+                                simulation.producto?.moneda,
+                              )}
+                            </td>
+                            <td>
+                              {formatMoney(
+                                item.devengamiento,
+                                simulation.producto?.moneda,
+                              )}
+                            </td>
+                            <td>
+                              {formatMoney(
+                                item.importe_cuota,
+                                simulation.producto?.moneda,
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {simulation.cuotas.length > 6 ? (
+                      <small>
+                        Se muestran las primeras 6 de {simulation.cuotas.length}{" "}
+                        cuotas. El plan completo queda guardado.
+                      </small>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            </EntityFormPanel>
           ) : null}
         </div>
-      ) : null}
+      </div>
     </CrudModal>
   );
 }

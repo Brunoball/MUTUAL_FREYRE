@@ -623,7 +623,7 @@ const fromDetail = (detail, catalogs) => {
   };
 };
 
-function Field({ label, error, wide = false, children }) {
+function Field({ label, error, span = "third", wide = false, children }) {
   const child = React.Children.only(children);
   const value = child.props.value;
   const alwaysActive =
@@ -638,7 +638,7 @@ function Field({ label, error, wide = false, children }) {
 
   return (
     <label
-      className={`entity-field ${wide ? "entity-field--wide" : ""} ${textarea ? "is-textarea" : ""} ${active ? "is-active" : ""} ${error ? "has-error" : ""}`.trim()}
+      className={`entity-field ${wide ? "entity-field--wide" : `entity-field--span-${span}`} ${textarea ? "is-textarea" : ""} ${active ? "is-active" : ""} ${error ? "has-error" : ""}`.trim()}
     >
       {children}
       <span>{label}</span>
@@ -971,9 +971,13 @@ export default function PersonaModal({
               </div>
 
               <div className="persona-form-grid">
+                <div className="persona-form-section-title">
+                  Identificación fiscal
+                </div>
                 <Field
                   label="CUIT / CUIL"
                   error={errorFor("general.cuit_cuil")}
+                  span="half"
                 >
                   <Input
                     disabled={readOnly}
@@ -986,6 +990,7 @@ export default function PersonaModal({
                 <Field
                   label="Condición frente al IVA"
                   error={errorFor("general.id_condicion_iva")}
+                  span="half"
                 >
                   <Select
                     disabled={readOnly}
@@ -996,6 +1001,9 @@ export default function PersonaModal({
                     value={form.general.id_condicion_iva}
                   />
                 </Field>
+                <div className="persona-form-section-title">
+                  Contacto y domicilio
+                </div>
                 <Field
                   label="Correo electrónico"
                   error={errorFor("general.email")}
@@ -1027,7 +1035,11 @@ export default function PersonaModal({
                     value={form.general.telefono_alternativo}
                   />
                 </Field>
-                <Field label="Domicilio" error={errorFor("general.domicilio")}>
+                <Field
+                  label="Domicilio"
+                  error={errorFor("general.domicilio")}
+                  span="half"
+                >
                   <Input
                     disabled={readOnly}
                     onChange={(value) => update("general", "domicilio", value)}
@@ -1037,6 +1049,7 @@ export default function PersonaModal({
                 <Field
                   label="País de residencia"
                   error={errorFor("general.id_pais_residencia")}
+                  span="half"
                 >
                   <Select
                     disabled={readOnly}
@@ -1083,6 +1096,7 @@ export default function PersonaModal({
                   <Field
                     label="Localidad en el exterior"
                     error={errorFor("general.localidad_exterior")}
+                    span="half"
                   >
                     <Input
                       disabled={readOnly}
@@ -1096,6 +1110,7 @@ export default function PersonaModal({
                 <Field
                   label="Zona geográfica"
                   error={errorFor("general.id_zona_geografica")}
+                  span="half"
                 >
                   <Select
                     disabled={readOnly}
@@ -1106,6 +1121,9 @@ export default function PersonaModal({
                     value={form.general.id_zona_geografica}
                   />
                 </Field>
+                <div className="persona-form-section-title">
+                  Actividad y cumplimiento
+                </div>
                 <Field label="Actividad" error={errorFor("general.actividad")}>
                   <Input
                     disabled={readOnly}
@@ -1258,7 +1276,7 @@ export default function PersonaModal({
                     <Field
                       label="Cónyuge"
                       error={errorFor("conyuge.id_persona_vinculada")}
-                      wide
+                      span="two-thirds"
                     >
                       <SearchableSelect
                         ariaLabel="Buscar cónyuge"
@@ -1381,6 +1399,7 @@ export default function PersonaModal({
                 <Field
                   label="Razón social"
                   error={errorFor("juridica.razon_social")}
+                  span="half"
                 >
                   <Input
                     disabled={readOnly}
@@ -1393,6 +1412,7 @@ export default function PersonaModal({
                 <Field
                   label="Nombre de fantasía"
                   error={errorFor("juridica.nombre_fantasia")}
+                  span="half"
                 >
                   <Input
                     disabled={readOnly}
@@ -1443,6 +1463,7 @@ export default function PersonaModal({
                 <Field
                   label="Autoridad de contralor"
                   error={errorFor("juridica.autoridad_contralor")}
+                  span="two-thirds"
                 >
                   <Input
                     disabled={readOnly}
@@ -1514,7 +1535,11 @@ export default function PersonaModal({
                     value={form.financieros.banco}
                   />
                 </Field>
-                <Field label="CBU" error={errorFor("financieros.cbu")}>
+                <Field
+                  label="CBU"
+                  error={errorFor("financieros.cbu")}
+                  span="two-thirds"
+                >
                   <Input
                     disabled={readOnly}
                     inputMode="numeric"
@@ -1776,6 +1801,7 @@ export default function PersonaModal({
                       <Field
                         label="Vigente desde"
                         error={errorFor(`autorizados.${index}.fecha_desde`)}
+                        span="half"
                       >
                         <Input
                           disabled={readOnly}
@@ -1794,6 +1820,7 @@ export default function PersonaModal({
                       <Field
                         label="Vigente hasta"
                         error={errorFor(`autorizados.${index}.fecha_hasta`)}
+                        span="half"
                       >
                         <Input
                           disabled={readOnly}

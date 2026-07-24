@@ -22,10 +22,10 @@ export function EntityTabs({
   };
 
   const handleKeyDown = (event, index) => {
-    if (event.key === "ArrowRight") {
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
       event.preventDefault();
       moveFocus((index + 1) % tabs.length);
-    } else if (event.key === "ArrowLeft") {
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
       event.preventDefault();
       moveFocus((index - 1 + tabs.length) % tabs.length);
     } else if (event.key === "Home") {
@@ -48,8 +48,11 @@ export function EntityTabs({
         return (
           <button
             aria-controls={`${tabId(idPrefix, tab.value)}-panel`}
+            aria-label={
+              tab.hasError ? `${tab.label}, contiene errores` : tab.label
+            }
             aria-selected={selected}
-            className={`entity-form-tab ${selected ? "is-active" : ""}`}
+            className={`entity-form-tab ${selected ? "is-active" : ""} ${tab.hasError ? "has-error" : ""}`.trim()}
             id={tabId(idPrefix, tab.value)}
             key={tab.value}
             onClick={() => onChange(tab.value)}
@@ -60,6 +63,13 @@ export function EntityTabs({
           >
             {tab.icon ? <GlobalIcon name={tab.icon} size={15} /> : null}
             <span>{tab.label}</span>
+            {tab.hasError ? (
+              <GlobalIcon
+                className="entity-form-tab__error"
+                name="warning"
+                size={14}
+              />
+            ) : null}
             {tab.badge !== undefined &&
             tab.badge !== null &&
             tab.badge !== "" ? (
