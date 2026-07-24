@@ -332,6 +332,12 @@
   background: linear-gradient(135deg, var(--blue-500), var(--navy-800));
 }
 
+.global-module-card__actions > .global-button--primary,
+.global-module-card__actions > .global-button--primary:hover:not(:disabled) {
+  border-color: var(--blue-600);
+  background: var(--navy-900);
+}
+
 .global-module-notice {
   margin: 0 18px 12px;
   padding: 11px 13px;

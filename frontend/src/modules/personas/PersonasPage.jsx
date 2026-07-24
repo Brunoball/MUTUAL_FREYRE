@@ -26,8 +26,6 @@ import {
 import "./personas.css";
 
 const isTrue = (value) => value === true || value === 1 || value === "1";
-const typeLabel = (value) =>
-  value === "JURIDICA" ? "PERSONA JURÍDICA" : "PERSONA FÍSICA";
 
 const localDateValue = (date = new Date()) => {
   const year = date.getFullYear();
@@ -43,10 +41,6 @@ const formatDate = (value) => {
   return match ? `${match[3]}/${match[2]}/${match[1]}` : "—";
 };
 
-const documentKind = (item) => {
-  if (item?.dni) return "DNI";
-  return item?.tipo_persona === "JURIDICA" ? "CUIT" : "CUIT / CUIL";
-};
 const UI_ACRONYMS = /\b(dni|cuit|cuil|iva|pep|arca|inaes|cbu)\b/gi;
 
 const toUiLabel = (value) => {
@@ -443,9 +437,9 @@ export default function PersonasPage() {
           columns={[
             "Persona",
             { label: "Documento", className: "is-center" },
-            "Contacto",
+            { label: "Contacto", className: "is-center" },
             "Ubicación",
-            "Asociación",
+            { label: "Asociación", className: "is-center" },
             {
               label: status === "BAJAS" ? "Fecha de baja" : "Alta / registro",
               className: "is-center",
@@ -479,11 +473,6 @@ export default function PersonasPage() {
             const relevantDate = active
               ? item.fecha_ingreso || item.creado_en
               : item.fecha_baja;
-            const relevantDateLabel = active
-              ? associated
-                ? "INGRESO COMO SOCIO"
-                : "REGISTRO DE PERSONA"
-              : item.motivo_baja || "BAJA REGISTRADA";
 
             return (
               <div
@@ -496,9 +485,6 @@ export default function PersonasPage() {
                   role="cell"
                 >
                   <strong>{item.nombre_exhibicion}</strong>
-                  <span className="personas-table-meta">
-                    {typeLabel(item.tipo_persona)}
-                  </span>
                 </div>
 
                 <div
@@ -506,19 +492,15 @@ export default function PersonasPage() {
                   role="cell"
                 >
                   <strong>{document}</strong>
-                  <small>{documentKind(item)}</small>
                 </div>
 
                 <div
-                  className="global-table-cell global-table-cell--main personas-contact-cell"
+                  className="global-table-cell global-table-cell--main is-center personas-contact-cell"
                   role="cell"
                 >
                   <span className="personas-table-line">
                     {item.telefono || "SIN TELÉFONO"}
                   </span>
-                  <small className="personas-table-line" title={item.email || ""}>
-                    {item.email || "SIN CORREO"}
-                  </small>
                 </div>
 
                 <div
@@ -528,14 +510,10 @@ export default function PersonasPage() {
                   <span className="personas-table-line" title={item.domicilio || ""}>
                     {item.domicilio || "SIN DOMICILIO"}
                   </span>
-                  <small>
-                    {[item.localidad, item.provincia].filter(Boolean).join(" · ") ||
-                      "SIN LOCALIDAD"}
-                  </small>
                 </div>
 
                 <div
-                  className="global-table-cell global-table-cell--main personas-membership-cell"
+                  className="global-table-cell global-table-cell--main is-center personas-membership-cell"
                   role="cell"
                 >
                   <span
@@ -545,13 +523,6 @@ export default function PersonasPage() {
                   >
                     {associated ? "ASOCIADO" : "NO ASOCIADO"}
                   </span>
-                  <small title={associated ? item.categoria || "" : ""}>
-                    {associated
-                      ? [item.categoria, item.sucursal, item.estado_asociado]
-                          .filter(Boolean)
-                          .join(" · ")
-                      : "SIN VÍNCULO SOCIETARIO"}
-                  </small>
                 </div>
 
                 <div
@@ -559,7 +530,6 @@ export default function PersonasPage() {
                   role="cell"
                 >
                   <strong>{formatDate(relevantDate)}</strong>
-                  <small title={relevantDateLabel}>{relevantDateLabel}</small>
                 </div>
 
                 <div
@@ -574,7 +544,7 @@ export default function PersonasPage() {
                       title="Ver información"
                       type="button"
                     >
-                      <GlobalActionIcon name="eye" size={12} />
+                      <GlobalActionIcon name="info" size={12} />
                     </button>
                     {canManage ? (
                       <>

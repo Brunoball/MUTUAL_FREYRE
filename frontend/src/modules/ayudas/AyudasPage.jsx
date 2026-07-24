@@ -303,52 +303,33 @@ export default function AyudasPage() {
                   role="cell"
                 >
                   <strong>N° {aidNumber(item.numero_ayuda)}</strong>
-                  <small className="ayudas-table-meta">
-                    Solicitud {aidNumber(item.numero_solicitud)}
-                  </small>
                 </div>
                 <div
                   className="global-table-cell global-table-cell--main ayudas-person-cell"
                   role="cell"
                 >
                   <strong>{item.socio_nombre}</strong>
-                  <small>
-                    Socio N° {item.numero_socio} · {item.documento || "S/D"}
-                  </small>
                 </div>
                 <div className="global-table-cell ayuda-type-cell" role="cell">
                   <span className="ayuda-type-badge">{item.tipo}</span>
-                  <small>{item.producto_nombre}</small>
                 </div>
                 <div
                   className="global-table-cell is-right is-strong"
                   role="cell"
                 >
                   {formatMoney(item.capital_original, currency)}
-                  {item.tipo === "I" ? (
-                    <small>
-                      {formatMoney(item.capital_equivalente_ars, "ARS")}
-                    </small>
-                  ) : null}
                 </div>
                 <div className="global-table-cell is-right" role="cell">
                   {formatMoney(item.importe_acreditado_ars, "ARS")}
                 </div>
                 <div className="global-table-cell is-center" role="cell">
                   <strong>{formatDate(item.fecha_vencimiento)}</strong>
-                  <small>
-                    {item.cuotas_pendientes} pendiente
-                    {Number(item.cuotas_pendientes) === 1 ? "" : "s"}
-                  </small>
                 </div>
                 <div
                   className="global-table-cell is-right is-strong"
                   role="cell"
                 >
                   {formatMoney(item.saldo_pendiente, currency)}
-                  {item.proximo_vencimiento ? (
-                    <small>Próx. {formatDate(item.proximo_vencimiento)}</small>
-                  ) : null}
                 </div>
                 <div className="global-table-cell is-center" role="cell">
                   <span

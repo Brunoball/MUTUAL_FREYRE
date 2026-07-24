@@ -24,7 +24,7 @@
 }
 
 .personas-table-row .global-table-cell {
-  min-height: 74px;
+  min-height: 60px;
   padding-block: 10px;
 }
 
@@ -38,43 +38,11 @@
   transition: color var(--global-ui-transition);
 }
 
-.personas-table-meta {
-  width: fit-content;
-  max-width: 100%;
-  padding: 2px 7px;
-  border: 1px solid color-mix(in srgb, var(--global-ui-action) 18%, white);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--global-ui-action) 5%, white);
-  color: color-mix(in srgb, var(--global-ui-action) 82%, var(--navy-900));
-  font-size: 9.5px;
-  font-weight: 760;
-  letter-spacing: 0.045em;
-  line-height: 1.35;
-}
-
-.personas-document-cell,
-.personas-date-cell {
-  flex-direction: column;
-  gap: 4px;
-}
-
 .personas-document-cell strong,
 .personas-date-cell strong {
   color: var(--navy-900);
   font-size: 12.5px;
   font-weight: 720;
-}
-
-.personas-document-cell small,
-.personas-date-cell small {
-  max-width: 100%;
-  overflow: hidden;
-  color: var(--global-ui-muted);
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.035em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .personas-table-line {
@@ -90,14 +58,20 @@
   font-weight: 610;
 }
 
-.personas-contact-cell > small,
-.personas-location-cell > small,
-.personas-membership-cell > small {
-  width: 100%;
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.personas-contact-cell,
+.personas-membership-cell {
+  align-items: center;
+  text-align: center;
+}
+
+.personas-contact-cell .personas-table-line {
+  justify-content: center;
+}
+
+.personas-global-grid > :nth-child(5) {
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
 }
 
 .personas-membership-chip {
@@ -113,6 +87,10 @@
   font-weight: 780;
   letter-spacing: 0.045em;
   line-height: 1.35;
+}
+
+.personas-membership-cell .personas-membership-chip {
+  margin-inline: auto;
 }
 
 .personas-membership-chip.is-associated {
