@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useAuth } from "../Login/AuthProvider";
+import { useAuth } from "../Login/context/AuthProvider";
 import { catalogToOptions, GLOBAL_OPTIONS } from "../../config/globalOptions";
 import {
   EMPTY_PERSONAS_CATALOGS,
@@ -10,8 +10,8 @@ import GlobalDivTable from "../Global/components/GlobalDivTable";
 import GlobalActionIcon from "../Global/components/GlobalActionIcon";
 import GlobalIcon from "../Global/components/GlobalIcon";
 import { ModulePage } from "../Global/components/ModulePage";
-import ModalEliminarGlobal from "../Global/Modales/ModalEliminarGlobal";
-import Toast from "../Global/Toast";
+import ModalEliminarGlobal from "../Global/modales/ModalEliminarGlobal";
+import Toast from "../Global/components/Toast";
 
 import PersonaModal from "./modales/PersonaModal";
 import {

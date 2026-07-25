@@ -11,18 +11,18 @@ import {
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
-import CrudModal from "../Global/components/CrudModal";
-import ModuleFeedback from "../Global/components/ModuleFeedback";
-import { useAuth } from "../Login/AuthProvider";
+import CrudModal from "../../Global/components/CrudModal";
+import ModuleFeedback from "../../Global/components/ModuleFeedback";
+import { useAuth } from "../../Login/context/AuthProvider";
 import {
   actualizarUsuarioSistema,
   cambiarEstadoUsuarioSistema,
   crearUsuarioSistema,
   eliminarUsuarioSistema,
   getUsuariosSistema,
-} from "./api/configuracionApi";
-import UsuarioSistemaModal from "./modales/UsuarioSistemaModal";
-import "./Configuracion.css";
+} from "../api/configuracionApi";
+import UsuarioSistemaModal from "../modales/UsuarioSistemaModal";
+import "../Configuracion.css";
 
 const formatDate = (value) => {
   if (!value) return "Sin ingresos";

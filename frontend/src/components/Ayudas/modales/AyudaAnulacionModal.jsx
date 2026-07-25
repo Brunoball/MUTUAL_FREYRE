@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import CrudModal from "../../Global/components/CrudModal";
 import GlobalIcon from "../../Global/components/GlobalIcon";
 import { anularAyuda } from "../api/ayudasApi";
-import { aidNumber, formatMoney, localDateValue } from "../ayudas.utils";
+import { aidNumber, formatMoney, localDateValue } from "../utils/ayudas.utils";
 
 export default function AyudaAnulacionModal({
   open,

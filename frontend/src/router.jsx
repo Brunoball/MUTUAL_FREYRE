@@ -1,15 +1,15 @@
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import ProtectedRoute from "./components/Login/ProtectedRoute";
-import GuestRoute from "./components/Login/GuestRoute";
-import PermissionGate from "./components/Login/PermissionGate";
+import ProtectedRoute from "./components/Login/rutas/ProtectedRoute";
+import GuestRoute from "./components/Login/rutas/GuestRoute";
+import PermissionGate from "./components/Login/rutas/PermissionGate";
 import AppLayout from "./components/Principal/Principal";
 import InicioSesion from "./components/Login/InicioSesion";
 import DashboardPage from "./components/Dashboard/DashboardPage";
 import PersonasPage from "./components/Personas/PersonasPage";
 import AyudasPage from "./components/Ayudas/AyudasPage";
 import ConfiguracionPage from "./components/Configuracion/ConfiguracionPage";
-import UsuariosSistemaPage from "./components/Configuracion/UsuariosSistemaPage";
+import UsuariosSistemaPage from "./components/Configuracion/secciones/UsuariosSistemaPage";
 import AuditoriaPage from "./components/Auditoria/AuditoriaPage";
 
 export default function AppRouter() {

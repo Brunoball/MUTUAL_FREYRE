@@ -4,9 +4,9 @@ import { faBars, faRightFromBracket, faUserCircle, faXmark } from "@fortawesome/
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { APP_NAME, INSTITUTION_NAME } from "../../config/env";
 import { CONFIGURATION_NAV_ITEM, NAVIGATION_GROUPS } from "../../config/navigation";
-import { useAuth } from "../Login/AuthProvider";
+import { useAuth } from "../Login/context/AuthProvider";
 import mutualLogo from "../../imagenes/logo_perfil_sf.png";
-import ProfileModal from "./ProfileModal";
+import ProfileModal from "./modales/ProfileModal";
 import "./Principal.css";
 
 export default function Principal() {

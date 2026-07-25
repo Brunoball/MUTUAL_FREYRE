@@ -9,7 +9,7 @@ import {
   faShieldHalved,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
-import CrudModal from "../Global/components/CrudModal";
+import CrudModal from "../../Global/components/CrudModal";
 import "./ProfileModal.css";
 
 const formatRoleList = (roles, fallback) => {

@@ -14,7 +14,7 @@ import {
   formatRate,
   localDateValue,
   numericValue,
-} from "../ayudas.utils";
+} from "../utils/ayudas.utils";
 
 const emptyCheck = (date) => ({
   banco: "",

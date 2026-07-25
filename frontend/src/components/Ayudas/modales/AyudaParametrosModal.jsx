@@ -17,7 +17,7 @@ import {
   formatRate,
   localDateValue,
   numericValue,
-} from "../ayudas.utils";
+} from "../utils/ayudas.utils";
 
 const GROUPS = [
   { value: "A", label: "A · COMPRA DE CHEQUES" },

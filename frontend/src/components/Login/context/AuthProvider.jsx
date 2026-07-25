@@ -3,8 +3,8 @@ import {
   consultarSesionActual,
   solicitarCierreSesion,
   solicitarInicioSesion,
-} from "./api/inicioSesionApi";
-import { clearStoredSession, readStoredSession, saveStoredSession } from "../_shared/session";
+} from "../api/inicioSesionApi";
+import { clearStoredSession, readStoredSession, saveStoredSession } from "../../Global/utils/session";
 
 const AuthContext = createContext(null);
 

@@ -1,5 +1,5 @@
 import React from "react";
-import Toast from "../Toast";
+import Toast from "./Toast";
 
 const DEFAULT_DURATION = {
   success: 2800,

@@ -1,4 +1,4 @@
-import { apiGet } from "../../_shared/httpClient";
+import { apiGet } from "../../Global/api/httpClient";
 
 export const getAuditoria = (filters = {}, options = {}) =>
   apiGet("auditoria", filters, options);

@@ -7,8 +7,8 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 import GlobalIcon from "../components/GlobalIcon";
-import Toast from "../Toast";
-import "../Global_css/Global_ModalEliminar.css";
+import Toast from "../components/Toast";
+import "../estilos/Global_ModalEliminar.css";
 
 const OPERATION_CONFIG = {
   eliminar: {

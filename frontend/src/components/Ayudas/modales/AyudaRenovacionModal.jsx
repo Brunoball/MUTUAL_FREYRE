@@ -12,7 +12,7 @@ import {
   formatMoney,
   localDateValue,
   numericValue,
-} from "../ayudas.utils";
+} from "../utils/ayudas.utils";
 
 const initialState = (detail) => {
   const due = String(detail?.ayuda?.fecha_vencimiento || "");

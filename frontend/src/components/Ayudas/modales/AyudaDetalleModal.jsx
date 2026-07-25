@@ -14,7 +14,7 @@ import {
   localDateValue,
   statusLabel,
   statusTone,
-} from "../ayudas.utils";
+} from "../utils/ayudas.utils";
 
 const text = (value, fallback = "—") =>
   value === undefined || value === null || String(value).trim() === ""

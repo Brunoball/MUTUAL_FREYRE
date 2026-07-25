@@ -1,5 +1,5 @@
-import { API_BASE_URL } from "../../config/env";
-import { clearStoredSession, getCsrfToken } from "./session";
+import { API_BASE_URL } from "../../../config/env";
+import { clearStoredSession, getCsrfToken } from "../utils/session";
 
 const NETWORK_RETRY_DELAY_MS = 350;
 const IDEMPOTENT_METHODS = new Set(["GET", "HEAD"]);

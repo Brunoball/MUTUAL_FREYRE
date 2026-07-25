@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useAuth } from "../Login/AuthProvider";
+import { useAuth } from "../Login/context/AuthProvider";
 import { MODULE_CATALOG } from "../../config/moduleCatalog";
 import GlobalActionIcon from "../Global/components/GlobalActionIcon";
 import GlobalDivTable from "../Global/components/GlobalDivTable";
@@ -25,7 +25,7 @@ import {
   statusLabel,
   statusTone,
   localDateValue,
-} from "./ayudas.utils";
+} from "./utils/ayudas.utils";
 import "./Ayudas.css";
 
 export default function AyudasPage() {

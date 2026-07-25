@@ -4,7 +4,7 @@ import {
   apiPatch,
   apiPost,
   apiPut,
-} from "../../_shared/httpClient";
+} from "../../Global/api/httpClient";
 
 export const getConfiguracion = (options) =>
   apiGet("configuracion", { _ts: Date.now() }, options);

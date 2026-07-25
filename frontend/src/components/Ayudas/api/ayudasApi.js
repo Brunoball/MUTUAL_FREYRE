@@ -1,4 +1,4 @@
-import { apiGet, apiPatch, apiPost } from "../../_shared/httpClient";
+import { apiGet, apiPatch, apiPost } from "../../Global/api/httpClient";
 
 export const getAyudas = (params) => apiGet("ayudas", params);
 export const getAyudasCatalogos = (fecha) =>

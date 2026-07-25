@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from "../../_shared/httpClient";
+import { apiGet, apiPost } from "../../Global/api/httpClient";
 
 export const solicitarInicioSesion = (credenciales) =>
   apiPost("auth/login", credenciales);

@@ -13,7 +13,7 @@ import {
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../Login/AuthProvider";
+import { useAuth } from "../Login/context/AuthProvider";
 import { getDashboard } from "./api/dashboardApi";
 import "./Dashboard.css";
 

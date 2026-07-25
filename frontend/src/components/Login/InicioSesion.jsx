@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash, faLock, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "./context/AuthProvider";
 import logoPerfilTitleSf from "../../imagenes/logo_perfil_title_sf.png";
 import "./InicioSesion.css";
 

@@ -1,4 +1,4 @@
-import { apiGet, apiPatch, apiPost, apiPut } from "../../_shared/httpClient";
+import { apiGet, apiPatch, apiPost, apiPut } from "../../Global/api/httpClient";
 
 export const getPersonas = (params, options) => apiGet("personas", params, options);
 export const getPersonasCatalogos = (options) => apiGet("personas/catalogos", { _ts: Date.now() }, options);

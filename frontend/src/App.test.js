@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import App from "./App";
-import { AuthProvider } from "./components/Login/AuthProvider";
+import { AuthProvider } from "./components/Login/context/AuthProvider";
 import { consultarSesionActual } from "./components/Login/api/inicioSesionApi";
 
 jest.mock("./components/Login/api/inicioSesionApi", () => ({
