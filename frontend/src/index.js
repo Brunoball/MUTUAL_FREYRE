@@ -1,8 +1,8 @@
 import ReactDOM from "react-dom/client";
-import App from "./app/App";
-import { AuthProvider } from "./app/AuthProvider";
-import "./Global/Global_css/roots.css";
-import "./Global/Global_css/Global.css";
+import App from "./App";
+import { AuthProvider } from "./components/Login/AuthProvider";
+import "./components/Global/Global_css/roots.css";
+import "./components/Global/Global_css/Global.css";
 
 const rootElement = document.getElementById("root");
 

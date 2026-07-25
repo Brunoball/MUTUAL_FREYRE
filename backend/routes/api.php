@@ -13,6 +13,9 @@ use App\Modules\Configuracion\ConfiguracionService;
 use App\Modules\Ayudas\AyudasController;
 use App\Modules\Ayudas\AyudasRepository;
 use App\Modules\Ayudas\AyudasService;
+use App\Modules\Auditoria\AuditoriaController;
+use App\Modules\Auditoria\AuditoriaRepository;
+use App\Modules\Auditoria\AuditoriaService;
 use App\Modules\Personas\PersonasService;
 use App\Modules\Personas\PersonasController;
 use App\Modules\Personas\PersonasRepository;
@@ -41,7 +44,7 @@ $router->get('/api/public/v1/health', static function (
     ]);
 }, ['auth' => false]);
 
-(require __DIR__ . '/../app/Modules/Auth/routes.php')($router, $authController);
+(require __DIR__ . '/../modules/Auth/routes.php')($router, $authController);
 
 $dashboardController = new DashboardController(new DashboardService(new DashboardRepository()));
 $personasController = new PersonasController(new PersonasService(new PersonasRepository(), $audit));
@@ -49,10 +52,14 @@ $ayudasController = new AyudasController(new AyudasService(new AyudasRepository(
 $configuracionController = new ConfiguracionController(
     new ConfiguracionService(new ConfiguracionRepository(), $audit)
 );
+$auditoriaController = new AuditoriaController(
+    new AuditoriaService(new AuditoriaRepository())
+);
 
-(require __DIR__ . '/../app/Modules/Dashboard/routes.php')($router, $dashboardController);
-(require __DIR__ . '/../app/Modules/Personas/routes.php')($router, $personasController);
-(require __DIR__ . '/../app/Modules/Ayudas/routes.php')($router, $ayudasController);
-(require __DIR__ . '/../app/Modules/Configuracion/routes.php')($router, $configuracionController);
+(require __DIR__ . '/../modules/Dashboard/routes.php')($router, $dashboardController);
+(require __DIR__ . '/../modules/Personas/routes.php')($router, $personasController);
+(require __DIR__ . '/../modules/Ayudas/routes.php')($router, $ayudasController);
+(require __DIR__ . '/../modules/Configuracion/routes.php')($router, $configuracionController);
+(require __DIR__ . '/../modules/Auditoria/routes.php')($router, $auditoriaController);
 
 return $router;

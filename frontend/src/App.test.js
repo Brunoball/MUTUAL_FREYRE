@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import App from "./app/App";
-import { AuthProvider } from "./app/AuthProvider";
-import { consultarSesionActual } from "./modules/login/inicioSesion.api";
+import App from "./App";
+import { AuthProvider } from "./components/Login/AuthProvider";
+import { consultarSesionActual } from "./components/Login/api/inicioSesionApi";
 
-jest.mock("./modules/login/inicioSesion.api", () => ({
+jest.mock("./components/Login/api/inicioSesionApi", () => ({
   consultarSesionActual: jest.fn(),
   solicitarInicioSesion: jest.fn(),
   solicitarCierreSesion: jest.fn(() => Promise.resolve()),
@@ -21,7 +21,7 @@ beforeEach(() => {
   );
 });
 
-test("muestra el acceso institucional cuando no existe una sesión", async () => {
+test("muestra el acceso institucional sin consultar auth/me cuando no existe una sesión", async () => {
   render(
     <AuthProvider>
       <App />
@@ -33,4 +33,5 @@ test("muestra el acceso institucional cuando no existe una sesión", async () =>
       name: /iniciar sesión/i,
     })
   ).toBeInTheDocument();
+  expect(consultarSesionActual).not.toHaveBeenCalled();
 });

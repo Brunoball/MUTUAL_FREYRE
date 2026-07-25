@@ -9,6 +9,7 @@ import {
   faMoneyCheckDollar,
   faPiggyBank,
   faScaleBalanced,
+  faShieldHalved,
   faVault,
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -49,6 +50,7 @@ export const NAVIGATION_GROUPS = [
       { label: "Caja y tesorería", path: "/caja", icon: faCashRegister, permission: "caja.view", enabled: false },
       { label: "Bancos", path: "/bancos", icon: faBuildingColumns, permission: "bancos.view", enabled: false },
       { label: "Contabilidad", path: "/contabilidad", icon: faScaleBalanced, permission: "contabilidad.view", enabled: false },
+      { label: "Auditoría", path: "/auditoria", icon: faShieldHalved, permission: "auditoria.view", enabled: true },
     ],
   },
 ];

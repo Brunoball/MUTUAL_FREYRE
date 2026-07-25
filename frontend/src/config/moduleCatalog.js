@@ -212,9 +212,9 @@ export const MODULE_CATALOG = {
   auditoria: {
     title: "Auditoría",
     eyebrow: "Evidencia y seguridad",
-    description: "Registro append-only de accesos, operaciones financieras, permisos, configuraciones y exportaciones.",
+    description: "Registro inmutable de accesos, operaciones financieras, usuarios y configuraciones con detalle antes/después.",
     permission: "auditoria.view",
-    status: "Estructura inicial",
+    status: "Operativo",
     sections: [
       "Inicios de sesión y bloqueos",
       "Operaciones financieras",
