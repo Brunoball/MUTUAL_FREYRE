@@ -22,12 +22,18 @@ final class AyudasRepository
 
         $search = trim((string)($filters['buscar'] ?? ''));
         if ($search !== '') {
-            $where[] = '(CAST(a.numero_ayuda AS CHAR) LIKE :buscar
-                OR CAST(a.numero_solicitud AS CHAR) LIKE :buscar
-                OR CAST(asoc.id_asociado AS CHAR) LIKE :buscar
-                OR p.nombre_exhibicion LIKE :buscar
-                OR COALESCE(pf.dni, p.cuit_cuil, \'\') LIKE :buscar)';
-            $params['buscar'] = '%' . $search . '%';
+            $where[] = '(CAST(a.numero_ayuda AS CHAR) LIKE :buscar_numero_ayuda
+                OR CAST(a.numero_solicitud AS CHAR) LIKE :buscar_numero_solicitud
+                OR CAST(asoc.id_asociado AS CHAR) LIKE :buscar_numero_socio
+                OR p.nombre_exhibicion LIKE :buscar_nombre
+                OR COALESCE(pf.dni, p.cuit_cuil, \'\') LIKE :buscar_documento)';
+
+            $searchPattern = '%' . $search . '%';
+            $params['buscar_numero_ayuda'] = $searchPattern;
+            $params['buscar_numero_solicitud'] = $searchPattern;
+            $params['buscar_numero_socio'] = $searchPattern;
+            $params['buscar_nombre'] = $searchPattern;
+            $params['buscar_documento'] = $searchPattern;
         }
 
         $type = strtoupper(trim((string)($filters['tipo'] ?? '')));
