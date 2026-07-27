@@ -13,6 +13,12 @@ use App\Modules\Configuracion\ConfiguracionService;
 use App\Modules\Ayudas\AyudasController;
 use App\Modules\Ayudas\AyudasRepository;
 use App\Modules\Ayudas\AyudasService;
+use App\Modules\Ayudas\BcraCentralDeudoresClient;
+use App\Modules\Ayudas\InformeRiesgoController;
+use App\Modules\Ayudas\InformeRiesgoRepository;
+use App\Modules\Ayudas\InformeRiesgoService;
+use App\Modules\Ayudas\RepetScreeningClient;
+use App\Modules\Ayudas\RiesgoUifEngine;
 use App\Modules\Auditoria\AuditoriaController;
 use App\Modules\Auditoria\AuditoriaRepository;
 use App\Modules\Auditoria\AuditoriaService;
@@ -49,6 +55,13 @@ $router->get('/api/public/v1/health', static function (
 $dashboardController = new DashboardController(new DashboardService(new DashboardRepository()));
 $personasController = new PersonasController(new PersonasService(new PersonasRepository(), $audit));
 $ayudasController = new AyudasController(new AyudasService(new AyudasRepository(), $audit));
+$informeRiesgoController = new InformeRiesgoController(new InformeRiesgoService(
+    new InformeRiesgoRepository(),
+    new BcraCentralDeudoresClient(),
+    new RepetScreeningClient(),
+    new RiesgoUifEngine(),
+    $audit
+));
 $configuracionController = new ConfiguracionController(
     new ConfiguracionService(new ConfiguracionRepository(), $audit)
 );
@@ -59,6 +72,10 @@ $auditoriaController = new AuditoriaController(
 (require __DIR__ . '/../modules/Dashboard/routes.php')($router, $dashboardController);
 (require __DIR__ . '/../modules/Personas/routes.php')($router, $personasController);
 (require __DIR__ . '/../modules/Ayudas/routes.php')($router, $ayudasController);
+(require __DIR__ . '/../modules/Ayudas/informe_riesgo_routes.php')(
+    $router,
+    $informeRiesgoController
+);
 (require __DIR__ . '/../modules/Configuracion/routes.php')($router, $configuracionController);
 (require __DIR__ . '/../modules/Auditoria/routes.php')($router, $auditoriaController);
 

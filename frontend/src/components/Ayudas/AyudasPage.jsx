@@ -17,6 +17,7 @@ import AyudaDetalleModal from "./modales/AyudaDetalleModal";
 import AyudaModal from "./modales/AyudaModal";
 import AyudaParametrosModal from "./modales/AyudaParametrosModal";
 import AyudaRenovacionModal from "./modales/AyudaRenovacionModal";
+import InformeRiesgoModal from "./modales/InformeRiesgoModal";
 import { getAyudaDetalle, getAyudas, getAyudasCatalogos } from "./api/ayudasApi";
 import {
   aidNumber,
@@ -32,6 +33,8 @@ export default function AyudasPage() {
   const moduleConfig = MODULE_CATALOG.ayudas || {};
   const { can } = useAuth();
   const canManage = can("ayudas.manage");
+  const canRiskReport =
+    can("ayudas.informes.view") || can("ayudas.informes.generate");
   const requestRef = useRef(0);
   const searchTimerRef = useRef(null);
 
@@ -50,6 +53,7 @@ export default function AyudasPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [parametersOpen, setParametersOpen] = useState(false);
+  const [riskReportOpen, setRiskReportOpen] = useState(false);
   const [detail, setDetail] = useState(null);
   const [renewalDetail, setRenewalDetail] = useState(null);
   const [annulDetail, setAnnulDetail] = useState(null);
@@ -222,16 +226,28 @@ export default function AyudasPage() {
     },
   ];
 
-  const secondaryActions = canManage
-    ? [
+  const secondaryActions = [
+    ...(canRiskReport
+      ? [
+          {
+            key: "risk-report",
+            label: "Informe por CUIT",
+            icon: "shield",
+            onClick: () => setRiskReportOpen(true),
+          },
+        ]
+      : []),
+    ...(canManage
+      ? [
         {
           key: "parameters",
           label: "Tasas y dólar",
           icon: "edit",
           onClick: () => setParametersOpen(true),
         },
-      ]
-    : [];
+        ]
+      : []),
+  ];
 
   return (
     <>
@@ -422,6 +438,11 @@ export default function AyudasPage() {
         onClose={() => setParametersOpen(false)}
         onSaved={loadCatalogs}
         open={parametersOpen}
+      />
+      <InformeRiesgoModal
+        onClose={() => setRiskReportOpen(false)}
+        open={riskReportOpen}
+        socios={catalogs.socios || []}
       />
     </>
   );

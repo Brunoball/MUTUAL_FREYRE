@@ -1,0 +1,729 @@
+.informe-risk-modal {
+  width: min(1280px, calc(100vw - 28px));
+  max-width: min(1280px, calc(100vw - 28px));
+}
+
+.informe-risk-modal .entity-modal__body {
+  min-height: min(690px, calc(100vh - 190px));
+  padding: 14px 20px 20px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(25, 103, 130, 0.08), transparent 28%),
+    linear-gradient(180deg, #fff 0%, var(--surface-soft) 100%);
+}
+
+.risk-report-start,
+.risk-report-summary-grid,
+.risk-report-form-grid,
+.risk-report-decision-context {
+  display: grid;
+  gap: 14px;
+}
+
+.risk-report-start {
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+}
+
+.risk-report-generate,
+.risk-report-history,
+.risk-report-section {
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 40px -34px rgba(7, 23, 42, 0.7);
+}
+
+.risk-report-generate {
+  align-self: start;
+  padding: 24px;
+}
+
+.risk-report-generate header > span,
+.risk-report-history header > div > span,
+.risk-report-section header > div > span {
+  color: var(--global-ui-action);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.risk-report-generate h3,
+.risk-report-history h3,
+.risk-report-section h3 {
+  margin: 3px 0 0;
+  color: var(--entity-modal-ink);
+  font-size: 16px;
+}
+
+.risk-report-generate p {
+  max-width: 620px;
+  margin: 8px 0 22px;
+  color: var(--entity-modal-text);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.risk-report-form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.risk-report-form-grid.is-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.risk-report-form-grid .is-span-2 {
+  grid-column: span 2;
+}
+
+.risk-report-form-grid .is-span-3 {
+  grid-column: 1 / -1;
+}
+
+.risk-report-generate > .global-button,
+.risk-report-section > .global-button {
+  margin-top: 16px;
+}
+
+.risk-report-permission {
+  display: block;
+  margin-top: 10px;
+  color: var(--entity-modal-text);
+}
+
+.risk-report-history {
+  min-height: 460px;
+  overflow: hidden;
+}
+
+.risk-report-history > header,
+.risk-report-section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 17px;
+  border-bottom: 1px solid var(--entity-modal-border);
+}
+
+.risk-report-history > header > button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--global-ui-action);
+  cursor: pointer;
+}
+
+.risk-report-history-list {
+  max-height: 520px;
+  overflow: auto;
+}
+
+.risk-report-history-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--entity-modal-border);
+  background: transparent;
+  color: var(--entity-modal-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.risk-report-history-item:hover {
+  background: color-mix(in srgb, var(--global-ui-action) 5%, white);
+}
+
+.risk-report-history-item > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.risk-report-history-item > span:last-child {
+  flex: 0 0 auto;
+  align-items: flex-end;
+}
+
+.risk-report-history-item strong,
+.risk-report-history-item small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.risk-report-history-item strong {
+  font-size: 12px;
+}
+
+.risk-report-history-item small {
+  color: var(--entity-modal-text);
+  font-size: 10.5px;
+}
+
+.risk-report-feedback,
+.risk-report-disclaimer,
+.risk-report-legal-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.risk-report-feedback {
+  position: relative;
+  margin-bottom: 12px;
+  padding: 11px 42px 11px 13px;
+  border: 1px solid var(--entity-modal-border);
+  background: #fff;
+}
+
+.risk-report-feedback.is-success {
+  border-color: rgba(23, 128, 90, 0.28);
+  color: #116646;
+  background: #f1fbf7;
+}
+
+.risk-report-feedback.is-warning {
+  border-color: rgba(180, 120, 10, 0.28);
+  color: #79520b;
+  background: #fff9ed;
+}
+
+.risk-report-feedback.is-error {
+  border-color: rgba(183, 48, 58, 0.25);
+  color: #8d2630;
+  background: #fff4f5;
+}
+
+.risk-report-feedback > button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.risk-report-disclaimer {
+  margin-bottom: 12px;
+  padding: 10px 13px;
+  border: 1px solid rgba(25, 103, 130, 0.19);
+  background: rgba(233, 246, 250, 0.8);
+  color: #164d62;
+}
+
+.risk-report-legal-note {
+  margin-bottom: 14px;
+  padding: 13px 15px;
+  border: 1px solid rgba(180, 120, 10, 0.22);
+  background: #fff9ed;
+  color: #6e4b0c;
+}
+
+.risk-report-workspace > .entity-form-tabs {
+  margin-bottom: 12px;
+}
+
+.risk-report-panel > div {
+  display: grid;
+  gap: 14px;
+}
+
+.risk-report-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.risk-report-summary-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.risk-report-summary-card > span {
+  color: var(--entity-modal-text);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.risk-report-summary-card > strong {
+  overflow: hidden;
+  color: var(--entity-modal-ink);
+  font-size: 15px;
+  text-overflow: ellipsis;
+}
+
+.risk-report-summary-card > small {
+  color: var(--entity-modal-text);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.risk-report-badge {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.risk-report-badge.is-good {
+  border-color: rgba(23, 128, 90, 0.25);
+  color: #116646;
+  background: #eaf8f2;
+}
+
+.risk-report-badge.is-warning {
+  border-color: rgba(180, 120, 10, 0.26);
+  color: #79520b;
+  background: #fff5df;
+}
+
+.risk-report-badge.is-danger {
+  border-color: rgba(183, 48, 58, 0.24);
+  color: #8d2630;
+  background: #ffedef;
+}
+
+.risk-report-badge.is-neutral {
+  border-color: rgba(67, 82, 101, 0.18);
+  color: #526276;
+  background: #f2f5f8;
+}
+
+.risk-report-section {
+  overflow: hidden;
+}
+
+.risk-report-section > header > small {
+  max-width: 48%;
+  overflow: hidden;
+  color: var(--entity-modal-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.risk-report-section > header a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--global-ui-action);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.risk-report-section > .risk-report-form-grid,
+.risk-report-section > .risk-report-check-grid,
+.risk-report-section > .risk-report-full-field,
+.risk-report-section > .risk-report-guided-actions,
+.risk-report-section > .risk-report-steps,
+.risk-report-section > .risk-report-decision-context,
+.risk-report-section > .risk-report-summary-grid,
+.risk-report-section > .risk-report-caption {
+  margin-inline: 16px;
+}
+
+.risk-report-section > .risk-report-summary-grid {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.risk-report-caption {
+  overflow-wrap: anywhere;
+  color: var(--entity-modal-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.risk-report-section > .risk-report-caption + a {
+  display: inline-flex;
+  margin: 0 16px 16px;
+  align-items: center;
+  gap: 5px;
+  color: var(--global-ui-action);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.risk-report-section > .risk-report-form-grid {
+  margin-top: 16px;
+}
+
+.risk-report-section > .risk-report-full-field {
+  display: flex;
+  margin-top: 14px;
+}
+
+.risk-report-section > .global-button {
+  margin: 16px;
+}
+
+.risk-report-source-list {
+  display: grid;
+}
+
+.risk-report-source-list article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--entity-modal-border);
+}
+
+.risk-report-source-list article:last-child {
+  border-bottom: 0;
+}
+
+.risk-report-source-list article > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.risk-report-source-list strong {
+  color: var(--entity-modal-ink);
+  font-size: 12px;
+}
+
+.risk-report-source-list small {
+  color: var(--entity-modal-text);
+  font-size: 10.5px;
+}
+
+.risk-report-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  padding: 15px;
+}
+
+.risk-report-table-wrap {
+  overflow: auto;
+}
+
+.risk-report-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--entity-modal-ink);
+  font-size: 11px;
+}
+
+.risk-report-table-wrap th,
+.risk-report-table-wrap td {
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--entity-modal-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.risk-report-table-wrap th {
+  position: sticky;
+  top: 0;
+  background: #f7f9fb;
+  color: var(--entity-modal-text);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.risk-report-table-wrap tr:last-child td {
+  border-bottom: 0;
+}
+
+.risk-report-table-wrap .is-right {
+  text-align: right;
+}
+
+.risk-report-empty {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 7px;
+  padding: 24px;
+  color: var(--entity-modal-text);
+  text-align: center;
+}
+
+.risk-report-empty strong {
+  color: var(--entity-modal-ink);
+}
+
+.risk-report-empty span {
+  max-width: 520px;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.risk-report-empty.is-compact {
+  min-height: 90px;
+  flex-direction: row;
+}
+
+.risk-report-check-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.risk-report-check {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--entity-modal-border);
+  border-radius: 10px;
+  background: #fbfcfd;
+  color: var(--entity-modal-ink);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.risk-report-check input {
+  accent-color: var(--global-ui-action);
+}
+
+.risk-report-alert-list,
+.risk-report-documents,
+.risk-report-decision-history {
+  display: grid;
+}
+
+.risk-report-alert-list article,
+.risk-report-decision-history article {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--entity-modal-border);
+}
+
+.risk-report-alert-list article > span:last-child,
+.risk-report-decision-history article > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.risk-report-alert-list article > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.risk-report-alert-list strong,
+.risk-report-decision-history strong {
+  color: var(--entity-modal-ink);
+  font-size: 11.5px;
+}
+
+.risk-report-alert-list small,
+.risk-report-decision-history small {
+  color: var(--entity-modal-text);
+  font-size: 10.5px;
+  line-height: 1.4;
+}
+
+.risk-report-pending {
+  margin: 14px;
+  padding: 13px 15px;
+  border-radius: 11px;
+  background: #fff9ed;
+  color: #6e4b0c;
+  font-size: 11px;
+}
+
+.risk-report-pending ul {
+  margin: 7px 0 0;
+  padding-left: 18px;
+}
+
+.risk-report-guided-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.risk-report-guided-actions a {
+  text-decoration: none;
+}
+
+.risk-report-steps {
+  margin-block: 14px;
+  padding-left: 34px;
+  color: var(--entity-modal-text);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.risk-report-documents a {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--entity-modal-border);
+  color: var(--global-ui-action);
+  text-decoration: none;
+}
+
+.risk-report-documents a > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.risk-report-documents strong {
+  font-size: 11.5px;
+}
+
+.risk-report-documents small {
+  overflow-wrap: anywhere;
+  color: var(--entity-modal-text);
+  font-size: 9.5px;
+}
+
+.risk-report-decision-context {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 15px;
+}
+
+.risk-report-footer-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 900px) {
+  .risk-report-start,
+  .risk-report-summary-grid,
+  .risk-report-decision-context {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .risk-report-form-grid.is-three,
+  .risk-report-kpis,
+  .risk-report-check-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .risk-report-form-grid.is-three .is-span-3 {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .informe-risk-modal {
+    width: calc(100vw - 14px);
+    max-width: calc(100vw - 14px);
+  }
+
+  .informe-risk-modal .entity-modal__body {
+    padding-inline: 10px;
+  }
+
+  .risk-report-start,
+  .risk-report-summary-grid,
+  .risk-report-form-grid,
+  .risk-report-form-grid.is-three,
+  .risk-report-kpis,
+  .risk-report-check-grid,
+  .risk-report-decision-context {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-report-form-grid .is-span-2,
+  .risk-report-form-grid .is-span-3 {
+    grid-column: auto;
+  }
+
+  .risk-report-section > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media print {
+  body > *:not(.entity-modal-overlay) {
+    display: none !important;
+  }
+
+  .entity-modal-overlay {
+    position: static !important;
+    display: block !important;
+    background: white !important;
+  }
+
+  .informe-risk-modal {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    box-shadow: none !important;
+  }
+
+  .informe-risk-modal .entity-modal__header button,
+  .informe-risk-modal .entity-modal__footer,
+  .informe-risk-modal .entity-form-tabs,
+  .risk-report-feedback {
+    display: none !important;
+  }
+
+  .informe-risk-modal .entity-modal__body {
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  .risk-report-panel > div {
+    display: block !important;
+  }
+
+  .risk-report-section,
+  .risk-report-summary-grid,
+  .risk-report-disclaimer {
+    margin-bottom: 12px;
+    break-inside: avoid;
+  }
+}

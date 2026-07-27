@@ -18,5 +18,22 @@ export const guardarTasaAyuda = (payload) =>
 export const guardarCotizacionDolar = (payload) =>
   apiPost("ayudas/parametros/cotizacion-dolar", payload);
 
+const INFORMES_RIESGO = "ayudas/informes-riesgo";
+
+export const getInformesRiesgo = (params = {}) =>
+  apiGet(INFORMES_RIESGO, params);
+export const getInformeRiesgoDetalle = (id) =>
+  apiGet(`${INFORMES_RIESGO}/detalle`, { id });
+export const generarInformeRiesgo = (payload) =>
+  apiPost(`${INFORMES_RIESGO}/generar`, payload);
+export const guardarEvaluacionUif = (id, payload) =>
+  apiPost(`${INFORMES_RIESGO}/evaluacion-uif`, payload, { query: { id } });
+export const guardarDictamenRiesgo = (id, payload) =>
+  apiPost(`${INFORMES_RIESGO}/dictamen`, payload, { query: { id } });
+export const refrescarFuentesBcra = (id) =>
+  apiPost(`${INFORMES_RIESGO}/refrescar-bcra`, {}, { query: { id } });
+export const refrescarFuenteRepet = (id) =>
+  apiPost(`${INFORMES_RIESGO}/refrescar-repet`, {}, { query: { id } });
+
 // Compatibilidad con importaciones previas del módulo inicial.
 export const getAyudasStructure = getAyudas;
