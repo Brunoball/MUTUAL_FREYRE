@@ -76,9 +76,7 @@ const readable = (value, fallback = "—") =>
 
 const tone = (value) => {
   const normalized = String(value || "").toUpperCase();
-  if (
-    ["BAJO", "OK", "RECOMENDADO", "SIN_COINCIDENCIA"].includes(normalized)
-  ) {
+  if (["BAJO", "OK", "RECOMENDADO", "SIN_COINCIDENCIA"].includes(normalized)) {
     return "is-good";
   }
   if (
@@ -134,7 +132,12 @@ function Feedback({ value, onClose }) {
         size={18}
       />
       <span>{value.message}</span>
-      <button aria-label="Cerrar aviso" onClick={onClose} type="button">
+      <button
+        aria-label="Cerrar aviso"
+        className="global-button global-button--ghost risk-report-icon-button"
+        onClick={onClose}
+        type="button"
+      >
         <GlobalIcon name="close" size={14} />
       </button>
     </div>
@@ -339,7 +342,8 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
     } catch (error) {
       setFeedback({
         type: "error",
-        message: error?.message || "No se pudieron actualizar las fuentes BCRA.",
+        message:
+          error?.message || "No se pudieron actualizar las fuentes BCRA.",
       });
     } finally {
       setBusy("");
@@ -388,8 +392,7 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
     } catch (error) {
       setFeedback({
         type: "error",
-        message:
-          error?.message || "No se pudo actualizar el control RePET.",
+        message: error?.message || "No se pudo actualizar el control RePET.",
       });
     } finally {
       setBusy("");
@@ -400,10 +403,7 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
     setBusy("decision");
     setFeedback(null);
     try {
-      const response = await guardarDictamenRiesgo(
-        report.id_informe,
-        decision,
-      );
+      const response = await guardarDictamenRiesgo(report.id_informe, decision);
       setDetail(response);
       await loadHistory();
       setFeedback({
@@ -604,7 +604,9 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                 name={busy === "generate" ? "loader" : "shield"}
                 size={17}
               />
-              {busy === "generate" ? "Consultando fuentes..." : "Generar informe"}
+              {busy === "generate"
+                ? "Consultando fuentes..."
+                : "Generar informe"}
             </button>
             {!canGenerate ? (
               <small className="risk-report-permission">
@@ -622,6 +624,7 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
               </div>
               <button
                 aria-label="Actualizar historial"
+                className="global-button global-button--ghost risk-report-icon-button"
                 disabled={Boolean(busy)}
                 onClick={loadHistory}
                 type="button"
@@ -638,7 +641,7 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
               ) : (
                 history.map((item) => (
                   <button
-                    className="risk-report-history-item"
+                    className="global-button global-button--ghost risk-report-history-item"
                     disabled={Boolean(busy)}
                     key={item.id_informe}
                     onClick={() => openReport(item.id_informe)}
@@ -720,7 +723,8 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                       <h3>Fuentes consultadas</h3>
                     </div>
                     <small>
-                      Hash del snapshot integral: {report.hash_integridad || "—"}
+                      Hash del snapshot integral:{" "}
+                      {report.hash_integridad || "—"}
                     </small>
                   </header>
                   <div className="risk-report-source-list">
@@ -799,7 +803,8 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                           label="Peor situación"
                           value={
                             current.normalizado?.resumen
-                              ?.peor_situacion_descripcion || "Sin clasificación"
+                              ?.peor_situacion_descripcion ||
+                            "Sin clasificación"
                           }
                         />
                         <SummaryCard
@@ -1003,7 +1008,11 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                         <SummaryCard
                           label="Actualizado"
                           value={dateTime(repetSource.consultado_en)}
-                          detail={repetSource.es_cache ? "Caché vigente" : "Descarga directa"}
+                          detail={
+                            repetSource.es_cache
+                              ? "Caché vigente"
+                              : "Descarga directa"
+                          }
                         />
                       </div>
                       <div className="risk-report-table-wrap">
@@ -1042,7 +1051,10 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                                   <strong>{match.nombre}</strong>
                                   <span>
                                     Consultado como {match.consulta} · similitud{" "}
-                                    {Math.round(Number(match.puntaje || 0) * 100)}%
+                                    {Math.round(
+                                      Number(match.puntaje || 0) * 100,
+                                    )}
+                                    %
                                   </span>
                                   <small>
                                     {readable(match.tipo_registro)} · referencia{" "}
@@ -1065,8 +1077,7 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                     rel="noreferrer"
                     target="_blank"
                   >
-                    Abrir RePET oficial{" "}
-                    <GlobalIcon name="external" size={14} />
+                    Abrir RePET oficial <GlobalIcon name="external" size={14} />
                   </a>
                 </section>
               </div>
@@ -1093,7 +1104,11 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                   <div className="risk-report-summary-grid">
                     <SummaryCard
                       label="Legajo interno"
-                      value={background.persona_encontrada ? "Vinculado" : "Sin vincular"}
+                      value={
+                        background.persona_encontrada
+                          ? "Vinculado"
+                          : "Sin vincular"
+                      }
                     />
                     <SummaryCard
                       label="Documentos registrados"
@@ -1111,10 +1126,18 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                   <div className="risk-report-pending">
                     <strong>Para habilitar RENAPER la Mutual debe:</strong>
                     <ul>
-                      <li>Adherir formalmente al Sistema de Identidad Digital.</li>
+                      <li>
+                        Adherir formalmente al Sistema de Identidad Digital.
+                      </li>
                       <li>Elegir validación de datos, vigencia o biometría.</li>
-                      <li>Obtener credenciales y documentación del ambiente de prueba.</li>
-                      <li>Aprobar consentimiento, seguridad y tratamiento de datos personales.</li>
+                      <li>
+                        Obtener credenciales y documentación del ambiente de
+                        prueba.
+                      </li>
+                      <li>
+                        Aprobar consentimiento, seguridad y tratamiento de datos
+                        personales.
+                      </li>
                     </ul>
                   </div>
                   <div className="risk-report-guided-actions">
@@ -1132,7 +1155,8 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                       rel="noreferrer"
                       target="_blank"
                     >
-                      Trámite de adhesión <GlobalIcon name="external" size={14} />
+                      Trámite de adhesión{" "}
+                      <GlobalIcon name="external" size={14} />
                     </a>
                   </div>
                 </section>
@@ -1254,7 +1278,9 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                         }
                         value={uif.pep_estado}
                       >
-                        <option value="NO_INFORMA">Pendiente / no informa</option>
+                        <option value="NO_INFORMA">
+                          Pendiente / no informa
+                        </option>
                         <option value="NO">No PEP</option>
                         <option value="NACIONAL">PEP nacional</option>
                         <option value="EXTRANJERA">PEP extranjera</option>
@@ -1313,20 +1339,14 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                       checked={uif.jurisdiccion_riesgo}
                       label="Jurisdicción de riesgo"
                       onChange={(event) =>
-                        setUifValue(
-                          "jurisdiccion_riesgo",
-                          event.target.checked,
-                        )
+                        setUifValue("jurisdiccion_riesgo", event.target.checked)
                       }
                     />
                     <BooleanField
                       checked={uif.efectivo_intensivo}
                       label="Actividad intensiva en efectivo"
                       onChange={(event) =>
-                        setUifValue(
-                          "efectivo_intensivo",
-                          event.target.checked,
-                        )
+                        setUifValue("efectivo_intensivo", event.target.checked)
                       }
                     />
                     <BooleanField
@@ -1400,7 +1420,9 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                       {!detail.alertas?.length ? (
                         <div className="risk-report-empty is-compact">
                           <GlobalIcon name="check" size={22} />
-                          <span>No se generaron alertas con los datos actuales.</span>
+                          <span>
+                            No se generaron alertas con los datos actuales.
+                          </span>
                         </div>
                       ) : (
                         detail.alertas.map((alert) => (
@@ -1561,10 +1583,13 @@ export default function InformeRiesgoModal({ open, onClose, socios = [] }) {
                           <RiskBadge value={item.resultado} />
                           <span>
                             <strong>
-                              {item.dictaminado_por_nombre || "Usuario autorizado"}{" "}
+                              {item.dictaminado_por_nombre ||
+                                "Usuario autorizado"}{" "}
                               · {dateTime(item.dictaminado_en)}
                             </strong>
-                            <small>{item.fundamento || "Sin fundamento adicional"}</small>
+                            <small>
+                              {item.fundamento || "Sin fundamento adicional"}
+                            </small>
                           </span>
                         </article>
                       ))}

@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import CrudModal from "../../Global/components/CrudModal";
 import GlobalIcon from "../../Global/components/GlobalIcon";
 import { anularAyuda } from "../api/ayudasApi";
-import { aidNumber, formatMoney, localDateValue } from "../utils/ayudas.utils";
+import {
+  aidNumber,
+  formatMoney,
+  localDateValue,
+  openDatePicker,
+} from "../utils/ayudas.utils";
 
 export default function AyudaAnulacionModal({
   open,
@@ -79,7 +84,7 @@ export default function AyudaAnulacionModal({
               : `No se puede anular desde este módulo: la caja común tiene ${formatMoney(currentBalance, "ARS")} y la liquidación acreditó ${formatMoney(credited, "ARS")}. Parte de los fondos ya fue retirada o transferida.`}
         </span>
       </div>
-      <div className="ayuda-form-grid ayuda-form-grid--2">
+      <div className="ayuda-form-grid ayuda-form-grid--2 ayuda-form-grid--annulment">
         <label className="entity-field ayuda-field is-active">
           <span>
             Fecha de anulación <b>*</b>
@@ -87,6 +92,7 @@ export default function AyudaAnulacionModal({
           <input
             max={localDateValue()}
             min={aid.fecha_liquidacion || undefined}
+            onClick={openDatePicker}
             onChange={(event) => setDate(event.target.value)}
             type="date"
             value={date}

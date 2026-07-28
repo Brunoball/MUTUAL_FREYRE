@@ -7,7 +7,11 @@
   min-height: min(690px, calc(100vh - 190px));
   padding: 14px 20px 20px;
   background:
-    radial-gradient(circle at 90% 0%, rgba(25, 103, 130, 0.08), transparent 28%),
+    radial-gradient(
+      circle at 90% 0%,
+      rgba(25, 103, 130, 0.08),
+      transparent 28%
+    ),
     linear-gradient(180deg, #fff 0%, var(--surface-soft) 100%);
 }
 
@@ -106,15 +110,12 @@
 }
 
 .risk-report-history > header > button {
-  display: grid;
   width: 30px;
+  min-width: 30px;
   height: 30px;
-  place-items: center;
-  border: 1px solid var(--entity-modal-border);
+  padding: 0;
   border-radius: 9px;
-  background: #fff;
   color: var(--global-ui-action);
-  cursor: pointer;
 }
 
 .risk-report-history-list {
@@ -123,22 +124,29 @@
 }
 
 .risk-report-history-item {
-  display: flex;
   width: 100%;
+  height: auto;
+  min-height: 62px;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 13px 16px;
   border: 0;
+  border-radius: 0;
   border-bottom: 1px solid var(--entity-modal-border);
   background: transparent;
   color: var(--entity-modal-ink);
+  font-weight: inherit;
+  white-space: normal;
   text-align: left;
-  cursor: pointer;
+  box-shadow: none;
 }
 
-.risk-report-history-item:hover {
+.risk-report-history-item:hover:not(:disabled) {
+  transform: none;
+  border-color: var(--entity-modal-border);
   background: color-mix(in srgb, var(--global-ui-action) 5%, white);
+  box-shadow: none;
 }
 
 .risk-report-history-item > span {
@@ -210,14 +218,17 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  display: grid;
   width: 27px;
+  min-width: 27px;
   height: 27px;
-  place-items: center;
-  border: 0;
+  padding: 0;
+  border-color: transparent;
   background: transparent;
   color: inherit;
-  cursor: pointer;
+}
+
+.risk-report-icon-button.global-button:hover:not(:disabled) {
+  background: color-mix(in srgb, currentColor 8%, transparent);
 }
 
 .risk-report-disclaimer {

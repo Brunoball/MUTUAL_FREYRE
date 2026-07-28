@@ -17,6 +17,7 @@ import {
   formatRate,
   localDateValue,
   numericValue,
+  openDatePicker,
 } from "../utils/ayudas.utils";
 
 const GROUPS = [
@@ -248,6 +249,7 @@ export default function AyudaParametrosModal({ open, onClose, onSaved }) {
                       Vigencia desde <b>*</b>
                     </span>
                     <input
+                      onClick={openDatePicker}
                       type="date"
                       value={rate.vigencia_desde}
                       onChange={(event) =>
@@ -294,7 +296,7 @@ export default function AyudaParametrosModal({ open, onClose, onSaved }) {
                     </select>
                   </label>
                   <label
-                    className={`entity-field ayuda-field ${rate.observaciones ? "is-active" : ""}`}
+                    className={`entity-field ayuda-field is-span-2 ${rate.observaciones ? "is-active" : ""}`}
                   >
                     <span>Observaciones</span>
                     <input
@@ -348,7 +350,7 @@ export default function AyudaParametrosModal({ open, onClose, onSaved }) {
                     </span>
                   </div>
                   <button
-                    className="global-button global-button--secondary ayuda-bna-consult"
+                    className="global-button global-button--ghost ayuda-bna-consult"
                     disabled={Boolean(saving) || consulting}
                     onClick={consultBnaQuote}
                     type="button"
@@ -400,6 +402,7 @@ export default function AyudaParametrosModal({ open, onClose, onSaved }) {
                       Fecha de referencia <b>*</b>
                     </span>
                     <input
+                      onClick={openDatePicker}
                       type="date"
                       value={quote.fecha_referencia}
                       onChange={(event) =>

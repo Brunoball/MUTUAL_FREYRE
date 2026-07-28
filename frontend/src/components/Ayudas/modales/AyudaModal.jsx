@@ -6,7 +6,11 @@ import {
   EntityFormPanel,
   EntityTabs,
 } from "../../Global/components/TabbedForm";
-import { getAyudasCatalogos, liquidarAyuda, simularAyuda } from "../api/ayudasApi";
+import {
+  getAyudasCatalogos,
+  liquidarAyuda,
+  simularAyuda,
+} from "../api/ayudasApi";
 import {
   addMonths,
   formatDate,
@@ -14,6 +18,7 @@ import {
   formatRate,
   localDateValue,
   numericValue,
+  openDatePicker,
 } from "../utils/ayudas.utils";
 
 const emptyCheck = (date) => ({
@@ -456,11 +461,12 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                   <strong>Liquidación</strong>
                   <span>Datos principales de la ayuda y del socio.</span>
                 </div>
-                <div className="ayuda-form-grid ayuda-form-grid--4">
+                <div className="ayuda-form-grid ayuda-form-grid--4 ayuda-form-grid--operation">
                   <Field
                     error={fieldError("tipo")}
                     label="Tipo de ayuda"
                     required
+                    className="is-col-3"
                   >
                     <select
                       onChange={(event) => update("tipo", event.target.value)}
@@ -477,7 +483,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                     error={fieldError("id_asociado")}
                     label="Socio"
                     required
-                    className="is-span-2"
+                    className="is-col-6"
                   >
                     <SearchableSelect
                       ariaLabel="Buscar socio"
@@ -489,7 +495,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       value={form.id_asociado}
                     />
                   </Field>
-                  <Field label="Moneda">
+                  <Field label="Moneda" className="is-col-3">
                     <input
                       readOnly
                       value={
@@ -497,9 +503,14 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       }
                     />
                   </Field>
-                  <Field label="Fecha de solicitud" required>
+                  <Field
+                    label="Fecha de solicitud"
+                    required
+                    className="is-col-3"
+                  >
                     <input
                       max={form.fecha_liquidacion || localDateValue()}
+                      onClick={openDatePicker}
                       type="date"
                       value={form.fecha_solicitud}
                       onChange={(event) =>
@@ -507,10 +518,15 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       }
                     />
                   </Field>
-                  <Field label="Fecha de liquidación" required>
+                  <Field
+                    label="Fecha de liquidación"
+                    required
+                    className="is-col-3"
+                  >
                     <input
                       max={localDateValue()}
                       min={form.fecha_solicitud || undefined}
+                      onClick={openDatePicker}
                       type="date"
                       value={form.fecha_liquidacion}
                       onChange={(event) =>
@@ -518,7 +534,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       }
                     />
                   </Field>
-                  <Field label="TNA vigente">
+                  <Field label="TNA vigente" className="is-col-3">
                     <input
                       readOnly
                       value={
@@ -528,7 +544,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       }
                     />
                   </Field>
-                  <Field label="Cotización del dólar">
+                  <Field label="Cotización del dólar" className="is-col-3">
                     <input
                       readOnly
                       value={
@@ -551,7 +567,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                     el tipo.
                   </span>
                 </div>
-                <div className="ayuda-form-grid ayuda-form-grid--4">
+                <div className="ayuda-form-grid ayuda-form-grid--4 ayuda-form-grid--financial">
                   {form.tipo !== "A" ? (
                     <Field
                       error={fieldError("capital")}
@@ -653,6 +669,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       required
                     >
                       <input
+                        onClick={openDatePicker}
                         type="date"
                         value={form.fecha_primer_vencimiento}
                         onChange={(event) =>
@@ -719,6 +736,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                         <strong>Cheque {index + 1}</strong>
                         <button
                           aria-label="Quitar cheque"
+                          className="global-button global-button--ghost ayuda-modal-icon-button is-danger"
                           onClick={() => removeCheck(index)}
                           type="button"
                         >
@@ -811,6 +829,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                         </Field>
                         <Field label="Fecha de emisión" required>
                           <input
+                            onClick={openDatePicker}
                             type="date"
                             value={item.fecha_emision}
                             onChange={(event) =>
@@ -824,6 +843,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                         </Field>
                         <Field label="Fecha de acreditación" required>
                           <input
+                            onClick={openDatePicker}
                             type="date"
                             value={item.fecha_acreditacion}
                             onChange={(event) =>
@@ -883,8 +903,13 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                   <strong>Rubro, destino y garantía</strong>
                   <span>Campos presentes en la liquidación y en el mutuo.</span>
                 </div>
-                <div className="ayuda-form-grid ayuda-form-grid--4">
-                  <Field error={fieldError("rubro")} label="Rubro" required>
+                <div className="ayuda-form-grid ayuda-form-grid--4 ayuda-form-grid--guarantee">
+                  <Field
+                    error={fieldError("rubro")}
+                    label="Rubro"
+                    required
+                    className="is-col-4"
+                  >
                     <input
                       list="ayuda-rubros-sugeridos"
                       value={form.rubro}
@@ -902,7 +927,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                     error={fieldError("destino")}
                     label="Destino"
                     required
-                    className="is-span-2"
+                    className="is-col-8"
                   >
                     <input
                       value={form.destino}
@@ -915,6 +940,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                     error={fieldError("tipo_garantia")}
                     label="Tipo de garantía"
                     required
+                    className="is-col-4"
                   >
                     <input
                       list="ayuda-garantias-sugeridas"
@@ -931,7 +957,15 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       ))}
                     </datalist>
                   </Field>
-                  <Field label="Garante 1" className="is-span-2">
+                  <Field label="Detalle" className="is-col-8">
+                    <input
+                      value={form.detalle}
+                      onChange={(event) =>
+                        update("detalle", event.target.value)
+                      }
+                    />
+                  </Field>
+                  <Field label="Garante 1" className="is-col-6">
                     <SearchableSelect
                       ariaLabel="Buscar primer garante"
                       clearLabel="SIN GARANTE"
@@ -947,7 +981,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       value={form.garante_1}
                     />
                   </Field>
-                  <Field label="Garante 2" className="is-span-2">
+                  <Field label="Garante 2" className="is-col-6">
                     <SearchableSelect
                       ariaLabel="Buscar segundo garante"
                       clearLabel="SIN SEGUNDO GARANTE"
@@ -963,15 +997,7 @@ export default function AyudaModal({ open, catalogs, onClose, onLiquidated }) {
                       value={form.garante_2}
                     />
                   </Field>
-                  <Field label="Detalle" className="is-span-2">
-                    <input
-                      value={form.detalle}
-                      onChange={(event) =>
-                        update("detalle", event.target.value)
-                      }
-                    />
-                  </Field>
-                  <Field label="Observaciones" className="is-span-2">
+                  <Field label="Observaciones" className="is-col-12">
                     <input
                       value={form.observaciones}
                       onChange={(event) =>

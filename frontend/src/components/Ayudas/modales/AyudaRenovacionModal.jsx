@@ -12,6 +12,7 @@ import {
   formatMoney,
   localDateValue,
   numericValue,
+  openDatePicker,
 } from "../utils/ayudas.utils";
 
 const initialState = (detail) => {
@@ -160,6 +161,7 @@ export default function AyudaRenovacionModal({
                     <input
                       max={localDateValue()}
                       min={aid.fecha_vencimiento || undefined}
+                      onClick={openDatePicker}
                       onChange={(event) =>
                         update("fecha_renovacion", event.target.value)
                       }

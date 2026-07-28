@@ -18,7 +18,11 @@ import AyudaModal from "./modales/AyudaModal";
 import AyudaParametrosModal from "./modales/AyudaParametrosModal";
 import AyudaRenovacionModal from "./modales/AyudaRenovacionModal";
 import InformeRiesgoModal from "./modales/InformeRiesgoModal";
-import { getAyudaDetalle, getAyudas, getAyudasCatalogos } from "./api/ayudasApi";
+import {
+  getAyudaDetalle,
+  getAyudas,
+  getAyudasCatalogos,
+} from "./api/ayudasApi";
 import {
   aidNumber,
   formatDate,
@@ -28,6 +32,7 @@ import {
   localDateValue,
 } from "./utils/ayudas.utils";
 import "./Ayudas.css";
+import "./modales/AyudasModales.css";
 
 export default function AyudasPage() {
   const moduleConfig = MODULE_CATALOG.ayudas || {};
@@ -233,18 +238,20 @@ export default function AyudasPage() {
             key: "risk-report",
             label: "Informe por CUIT",
             icon: "shield",
+            className: "ayudas-header-action ayudas-header-action--risk-report",
             onClick: () => setRiskReportOpen(true),
           },
         ]
       : []),
     ...(canManage
       ? [
-        {
-          key: "parameters",
-          label: "Tasas y dólar",
-          icon: "edit",
-          onClick: () => setParametersOpen(true),
-        },
+          {
+            key: "parameters",
+            label: "Tasas y dólar",
+            icon: "edit",
+            className: "ayudas-header-action ayudas-header-action--parameters",
+            onClick: () => setParametersOpen(true),
+          },
         ]
       : []),
   ];

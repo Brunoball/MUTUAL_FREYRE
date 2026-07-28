@@ -5,6 +5,19 @@ export const localDateValue = (date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
+export const openDatePicker = (event) => {
+  const input = event.currentTarget;
+  if (!input || input.disabled || input.readOnly) return;
+
+  if (typeof input.showPicker === "function") {
+    try {
+      input.showPicker();
+    } catch {
+      // El navegador conserva el comportamiento nativo si no admite showPicker.
+    }
+  }
+};
+
 export const addMonths = (dateValue, months = 1) => {
   const [year, month, day] = String(dateValue || localDateValue())
     .split("-")

@@ -10,7 +10,7 @@ import GlobalDivTable from "../Global/components/GlobalDivTable";
 import GlobalActionIcon from "../Global/components/GlobalActionIcon";
 import GlobalIcon from "../Global/components/GlobalIcon";
 import { ModulePage } from "../Global/components/ModulePage";
-import ModalEliminarGlobal from "../Global/modales/ModalEliminarGlobal";
+import ModalEliminarGlobal from "../Global/Modales/ModalEliminarGlobal";
 import Toast from "../Global/components/Toast";
 
 import PersonaModal from "./modales/PersonaModal";
