@@ -52,11 +52,33 @@ const formatValue = (value) => {
 };
 
 function AuditDetailModal({ event, loading, onClose }) {
-  if (!event && !loading) return null;
+  const open = Boolean(event || loading);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (keyboardEvent) => {
+      if (keyboardEvent.key !== "Escape") return;
+
+      keyboardEvent.preventDefault();
+      onClose?.();
+    };
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose, open]);
+
+  if (!open) return null;
   const changes = event?.cambios?.campos || [];
 
   return (
-    <div className="audit-modal" role="presentation" onMouseDown={onClose}>
+    <div className="audit-modal" role="presentation">
       <article
         aria-modal="true"
         className="audit-modal__panel"

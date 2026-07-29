@@ -210,7 +210,7 @@ final class AuditLogger
         \Throwable $error
     ): void {
         try {
-            $directory = dirname(__DIR__, 3) . '/storage/audit-pending';
+            $directory = dirname(__DIR__) . '/storage/audit-pending';
             if (!is_dir($directory) && !@mkdir($directory, 0770, true) && !is_dir($directory)) {
                 return;
             }

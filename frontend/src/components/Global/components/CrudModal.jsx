@@ -41,11 +41,7 @@ export default function CrudModal({
   if (!open) return null;
 
   return createPortal(
-    <div
-      className="entity-modal-overlay"
-      onMouseDown={() => !saving && onClose?.()}
-      role="presentation"
-    >
+    <div className="entity-modal-overlay" role="presentation">
       <section
         aria-labelledby="entity-modal-title"
         aria-modal="true"

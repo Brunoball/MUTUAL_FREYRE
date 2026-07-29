@@ -192,6 +192,13 @@ final class InformeRiesgoRepository
         int $userId,
         ?string $denomination = null
     ): void {
+        $normalizedDenomination = $denomination !== null
+            ? trim($denomination)
+            : null;
+        if ($normalizedDenomination === '') {
+            $normalizedDenomination = null;
+        }
+
         $this->db()->prepare(
             'UPDATE aem_informes_riesgo
              SET estado = :estado,
@@ -200,7 +207,7 @@ final class InformeRiesgoRepository
                  documentacion_estado = COALESCE(:documentacion, documentacion_estado),
                  resumen_json = :resumen,
                  hash_integridad = :hash,
-                 denominacion = COALESCE(NULLIF(:denominacion, \'\'), denominacion),
+                 denominacion = COALESCE(:denominacion, denominacion),
                  actualizado_por = :usuario
              WHERE id_informe = :id'
         )->execute([
@@ -210,7 +217,7 @@ final class InformeRiesgoRepository
             'documentacion' => $documentationState,
             'resumen' => $this->encode($summary),
             'hash' => $integrityHash,
-            'denominacion' => $denomination,
+            'denominacion' => $normalizedDenomination,
             'usuario' => $userId,
             'id' => $reportId,
         ]);
